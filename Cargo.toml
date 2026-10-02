@@ -1,0 +1,21 @@
+[package]
+name = "tman"
+version = "0.1.0"
+edition = "2021"
+description = "Context-aware interactive layer on top of your shell (terminalman)"
+
+[dependencies]
+ratatui = "0.26"
+crossterm = "0.27"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+[target.'cfg(unix)'.dependencies]
+signal-hook = "0.3"
+libc = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
