@@ -1,6 +1,8 @@
+<div align="center">
+
 # tman
 
-> A context-aware interactive layer over your terminal.
+**A context-aware interactive layer over your terminal.**
 
 [![Rust](https://img.shields.io/badge/rust-2021_edition-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -8,69 +10,41 @@
 [![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash-green.svg)](https://github.com/IamShreshth/Tman)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](docs/requirements.txt)
 
-<p align="center">
-  <img src="docs/preview.png" alt="tman interface preview" width="850">
-</p>
+<br/>
 
-`tman` introduces a unified control layer over your active shell. Instead of context switching across terminal multiplexers or running repetitive status commands, pressing `Ctrl+Shift+T` (or `Ctrl+Space`) overlays an interactive HUD directly on top of your prompt—bringing system vitals, directory trees, project workflows, and command history into a single focal point.
+<img src="docs/preview.png" alt="tman interface preview" width="850">
+
+</div>
+
+`tman` drops an interactive HUD directly over your shell prompt with `Ctrl+Shift+T` (or `Ctrl+Space`), enabling directory navigation, project workflow execution, history search, and system telemetry without interrupting your active workflow.
 
 ---
 
-## Installation
+## Quick Start
 
-### Single-Step Install
-
+### 1. Install
 ```bash
 curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
 ```
 
-Reload your shell to activate:
-
+### 2. Activate
 ```bash
 source ~/.zshrc   # If using Zsh
 # OR
 source ~/.bashrc  # If using Bash
 ```
 
-Launch by pressing `Ctrl+Shift+T` (or `Ctrl+Space`), or run `tman`.
+### 3. Launch
+Press `Ctrl+Shift+T` (or `Ctrl+Space`) anywhere in your shell, or run `tman`.
 
 ---
 
-## Overview
+## Capabilities
 
-- **Interactive Shell Layer**: An ephemeral HUD that takes over the terminal buffer on demand and returns cleanly to your command line without background daemons.
-- **Unified Telemetry**: Real-time host metrics—battery status, processor load averages, RAM allocation, disk capacity, and active Git branch states.
-- **Workflow Discovery**: Automatically senses repository types (Rust, Python, Node, Go, Docker, Make) and surfaces relevant actions.
-- **Persistent Bookmarks & Navigation**: Fast filesystem traversal with directory pinning and shell-integrated `cd`.
-
----
-
-## Requirements
-
-`tman` compiles to a self-contained native binary with zero runtime dependencies. No Python, Node.js, or auxiliary runtimes are required.
-
-- **OS**: macOS (Apple Silicon & Intel) or Linux (x86_64, aarch64)
-- **Shell**: Zsh (v5.0+) or Bash (v4.0+)
-- **Build tool**: Rust 1.70+ and Cargo (only if compiling from source)
-
-See [requirements.txt](docs/requirements.txt) for technical specifications.
-
----
-
-## Build from Source
-
-```bash
-git clone https://github.com/IamShreshth/Tman.git
-cd Tman
-./files/install.sh
-```
-
-Or install directly via Cargo:
-
-```bash
-cargo install --git https://github.com/IamShreshth/Tman.git --locked
-eval "$(tman init zsh)"  # Add to ~/.zshrc
-```
+- **Zero-Daemon HUD**: Ephemeral full-screen overlay that takes ownership of the terminal buffer and releases it cleanly on exit.
+- **System Telemetry**: Real-time inspection of battery status, CPU load averages, memory allocation, volume capacity, and active Git branch state.
+- **Workflow Discovery**: Automatically senses repository types (Rust, Python, Node, Go, Docker, Make) and compiles actionable targets.
+- **Navigation & Bookmarks**: Fast directory traversal with persistent directory pinning and in-prompt `cd` integration.
 
 ---
 
@@ -79,18 +53,49 @@ eval "$(tman init zsh)"  # Add to ~/.zshrc
 | Key | Context | Action |
 | :--- | :--- | :--- |
 | `Ctrl+Shift+T` / `Ctrl+Space` | Shell | Toggle HUD overlay |
-| `Up` / `Down` or `j` / `k` | Menus | Move selection |
-| `Enter` | Any | Execute action / `cd` into directory |
-| `Right` / `l` | File Browser | Open selected directory |
-| `Left` / `h` / `Backspace` | Submenus | Go to parent directory / back |
-| `b` | File Browser | Pin selected folder to bookmarks |
+| `Up` / `Down` or `j` / `k` | Navigation | Move cursor selection |
+| `Enter` | Any View | Execute selected action / `cd` into folder |
+| `Right` / `l` | File Browser | Open highlighted directory |
+| `Left` / `h` / `Backspace` | Submenus | Navigate to parent directory / previous view |
+| `b` | Menu / Files | Bookmark current directory or highlighted folder |
 | `d` or `x` | Bookmarks | Delete highlighted bookmark |
 | `Tab` | Browser / Runners | Open action menu / insert command into shell |
-| `/` | Lists | Filter with fuzzy search |
-| `.` | File Browser | Toggle hidden files |
-| `m` | Any | Return to main menu |
-| `Esc` | Any | Close modal / exit HUD |
-| `Ctrl+C` / `Ctrl+D` | Any | Force quit |
+| `/` | Lists | Filter items with fuzzy search |
+| `.` | File Browser | Toggle hidden dotfiles |
+| `m` | Submenus | Return to main menu |
+| `Esc` | Any View | Clear search / close modal / exit HUD |
+| `Ctrl+C` / `Ctrl+D` | Any View | Terminate overlay |
+
+---
+
+## Requirements
+
+`tman` is written in Rust and compiles to a standalone, zero-dependency native binary. No external runtimes (Python, Node.js) are needed.
+
+| Component | Requirement |
+| :--- | :--- |
+| **Operating System** | macOS (Apple Silicon & Intel) or Linux (x86_64, aarch64) |
+| **Supported Shells** | Zsh (v5.0+) or Bash (v4.0+) |
+| **Build Toolchain** | Rust 1.70+ and Cargo (only when building from source) |
+
+See [docs/requirements.txt](docs/requirements.txt) for technical specifications.
+
+---
+
+## Alternative Installation
+
+### Install via Cargo
+```bash
+cargo install --git https://github.com/IamShreshth/Tman.git --locked
+echo 'eval "$(tman init zsh)"' >> ~/.zshrc
+```
+
+### Build from Source
+```bash
+git clone https://github.com/IamShreshth/Tman.git
+cd Tman
+./files/install.sh
+```
 
 ---
 
