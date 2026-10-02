@@ -1,117 +1,96 @@
-# ⚡ tman (terminalman)
-> **A context-aware, hyper-fast interactive layer over your terminal.**
+# tman
 
-`tman` drops an interactive HUD right over your shell prompt with **Ctrl+Shift+T** (or **Ctrl+Space**), letting you navigate directories, run project workflows, inspect system vitals, search history, and manage bookmarks without leaving your active workflow.
+> A context-aware interactive layer over your terminal.
 
----
+[![Rust](https://img.shields.io/badge/rust-2021_edition-orange.svg)](https://www.rust-lang.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/IamShreshth/Tman)
+[![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash-green.svg)](https://github.com/IamShreshth/Tman)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](requirements.txt)
 
-## 🚀 Key Features
-
-### 1. 🖥️ Mission Control HUD
-When opened on the dashboard, the right-hand context panel displays real-time vitals:
-- **Power & Battery**: Charge percentage & charging status (`pmset`).
-- **Uptime**: System boot time formatted cleanly.
-- **CPU Load**: 1m, 5m, 15m load averages (`getloadavg`).
-- **RAM**: Total system memory (`sysctl`).
-- **Disk Space**: Free storage space and percentage used on current volume (`statvfs`).
-- **Git Context**: Current branch, staged (+), modified (~), and untracked (?) files.
-
-### 2. ★ Pinned Bookmarks
-- Press **`b`** on any folder in Navigate / Files view to pin it to your quick bookmarks.
-- Open **Bookmarks** from the main dashboard to jump directly into your favorite project folders from anywhere.
-- Press **`d`** or **`x`** inside the Bookmarks view to remove a pin.
-- All bookmarks are saved persistently in `~/.config/tman/config.toml`.
-
-### 3. ▶️ Smarter Multi-Stack Project Runners
-Inside any repository or project directory, open **Run** to see auto-discovered workflow commands:
-- **Python**: Detects `.venv` / `venv` (`source .venv/bin/activate`), Poetry (`poetry run ...`), Pytest (`pytest`), Pip (`pip install -r requirements.txt`), and `main.py` / `app.py`.
-- **Docker & Compose**: Detects `docker-compose.yml` / `compose.yaml` (`docker compose up -d`, `down`, `logs -f`, `restart`, `ps`) or `Dockerfile` (`docker build`).
-- **Node.js**: Automatically identifies the right package manager (`bun`, `pnpm`, `yarn`, `npm`) and lists all scripts from `package.json`.
-- **Rust**: `cargo build`, `cargo run`, `cargo test`, `cargo check`, `cargo clippy`.
-- **Go**: `go run .`, `go test ./...`, `go build`, `go mod tidy`.
-- **Make & Just**: Dynamically parses targets from `Makefile` and `justfile` / `Justfile`.
-
-### 4. 🎨 In-App Theme Selector (like btop)
-- Choose from 12 curated aesthetic color themes directly from the dashboard:
-  `cyan` 💎, `blue` 🌊, `green` 🌿, `magenta` 🔮, `yellow` ☀️, `red` 🔥, `orange` 🍊, `purple` 👾, `pink` 🌸, `peach` 🍑, `teal` ✨, `white` ❄️, or custom `#hex`.
-- Selection applies immediately with real-time palette preview and saves to your config file.
-
-### 5. 🛡️ Safety & Frictionless Shell Execution
-- **Real shell execution**: Running `tman` in your shell evaluates `cd` or your selected command directly in your active shell prompt.
-- **Destructive action warning**: Destructive commands (like `rm -rf`, dropping tables, git resets) trigger a confirmation overlay with an option to press **`E`** to edit the command before running.
+`tman` drops an interactive HUD directly over your active shell prompt with `Ctrl+Shift+T` (or `Ctrl+Space`), enabling directory navigation, workflow execution, history search, and bookmarks without context switching.
 
 ---
 
-## 📦 Installation & Setup
+## Installation
 
-### 1. Build the release binary
+### Single-Step Install
+
 ```bash
-cargo build --release
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/install.sh | bash
 ```
 
-### 2. Install to PATH
-On macOS:
-```bash
-sudo rm -f /usr/local/bin/tman
-sudo cp target/release/tman /usr/local/bin/tman
-sudo codesign --force --deep --sign - /usr/local/bin/tman
-```
-*(Or install to `~/.local/bin/tman` if `~/.local/bin` is in your PATH)*
+Reload your shell to activate:
 
-### 3. Enable Shell Integration
-Add this line to your `~/.zshrc` (or `~/.bashrc`):
 ```bash
-eval "$(tman init zsh)"
+source ~/.zshrc   # If using Zsh
+# OR
+source ~/.bashrc  # If using Bash
 ```
-Then reload your shell:
+
+Launch by pressing `Ctrl+Shift+T` (or `Ctrl+Space`), or run `tman`.
+
+---
+
+## Requirements
+
+`tman` is written in Rust and compiles to a standalone, zero-dependency native binary. No Python, Node.js, or external runtimes are required.
+
+- **OS**: macOS (Apple Silicon & Intel) or Linux (x86_64, aarch64)
+- **Shell**: Zsh (v5.0+) or Bash (v4.0+)
+- **Build tool**: Rust 1.70+ and Cargo (only if building from source)
+
+See [requirements.txt](requirements.txt) for technical specifications.
+
+---
+
+## Build from Source
+
 ```bash
-source ~/.zshrc
+git clone https://github.com/IamShreshth/Tman.git
+cd Tman
+./install.sh
+```
+
+Or install directly via Cargo:
+
+```bash
+cargo install --git https://github.com/IamShreshth/Tman.git --locked
+eval "$(tman init zsh)"  # Add to ~/.zshrc
 ```
 
 ---
 
-## ⌨️ Keybindings
+## Keybindings
 
-| Key | Action |
-| :--- | :--- |
-| **Ctrl+Shift+T** / **Ctrl+Space** | Open `tman` HUD over your shell prompt |
-| **↑ / ↓** or **j / k** | Navigate up / down |
-| **Enter** | Select / Run / cd into directory |
-| **→** | Enter directory (in Navigate view) |
-| **←** / **Backspace** | Go up to parent directory / back to previous menu |
-| **b** | Bookmark / Pin selected directory |
-| **d** or **x** | Delete bookmark (inside Bookmarks view) |
-| **Tab** | Open File Actions menu / Insert command to edit |
-| **/** | Fuzzy search items |
-| **.** | Toggle hidden dotfiles on/off |
-| **m** | Jump back to Main Menu |
-| **Esc** | Close `tman` / Clear search |
-| **Ctrl+C** / **Ctrl+D** | Exit immediately |
+| Key | Context | Action |
+| :--- | :--- | :--- |
+| `Ctrl+Shift+T` / `Ctrl+Space` | Shell | Toggle HUD overlay |
+| `Up` / `Down` or `j` / `k` | Menus | Move selection |
+| `Enter` | Any | Execute action / `cd` into directory |
+| `Right` / `l` | File Browser | Open selected directory |
+| `Left` / `h` / `Backspace` | Submenus | Go to parent directory / back |
+| `b` | File Browser | Pin selected folder to bookmarks |
+| `d` or `x` | Bookmarks | Delete highlighted bookmark |
+| `Tab` | Browser / Runners | Open action menu / insert command into shell |
+| `/` | Lists | Filter with fuzzy search |
+| `.` | File Browser | Toggle hidden files |
+| `m` | Any | Return to main menu |
+| `Esc` | Any | Close modal / exit HUD |
+| `Ctrl+C` / `Ctrl+D` | Any | Force quit |
 
 ---
 
-## ⚙️ Configuration
+## Uninstallation
 
-Configuration is located at `~/.config/tman/config.toml`:
-
-```toml
-[ui]
-animations = true     # smooth slide-in context panel
-preview = true        # enable context / preview panel
-show_hidden = false
-accent = "cyan"       # cyan | blue | green | magenta | yellow | red | orange | purple | pink | peach | teal | white | #hex
-
-[keybindings]
-open = "ctrl-shift-t" # keybinding handled by tman init
-
-[shell]
-editor = ""           # defaults to $VISUAL / $EDITOR / vi
-
-[safety]
-confirm_destructive = true
-```
-
-Generate the default config at any time:
 ```bash
-tman default-config > "$(tman config-path)"
+rm -f ~/.local/bin/tman
+rm -rf ~/.config/tman
 ```
+
+Remove the `eval "$(tman init ...)"` line from your `~/.zshrc` or `~/.bashrc`.
+
+## License
+
+Licensed under the [MIT License](LICENSE).
+

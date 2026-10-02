@@ -1,0 +1,29 @@
+# ==============================================================================
+# Tman (terminalman) - Requirements & Prerequisites
+# ==============================================================================
+# NOTE: Tman is written in native Rust (edition 2021).
+# It compiles to a standalone, zero-dependency native binary.
+# There are no Python runtime dependencies or pip packages required to run Tman.
+#
+# Rust dependencies are managed automatically via Cargo.toml.
+# ==============================================================================
+
+# --- System & Shell Requirements ---
+# Supported Operating Systems:
+#   - macOS (Apple Silicon M-series & Intel x86_64)
+#   - Linux (x86_64 & aarch64)
+#
+# Supported Shells:
+#   - zsh (v5.0+ recommended)
+#   - bash (v4.0+ recommended)
+
+# --- Build Requirements (Only if compiling from source) ---
+#   - Rust >= 1.70.0 (https://rustup.rs)
+#   - Cargo (included with Rust)
+#   - Standard C toolchain (clang / gcc / Xcode Command Line Tools)
+
+# --- Optional Integrations (Auto-detected if present) ---
+#   - git (for repository status in context panel)
+#   - docker / docker compose (for container workflows)
+#   - python / poetry / pytest (for Python project workflows)
+#   - node / npm / pnpm / yarn / bun (for JavaScript / TypeScript project workflows)
