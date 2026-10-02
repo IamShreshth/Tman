@@ -74,6 +74,8 @@ if [[ -n "${PREFIX:-}" ]]; then
     BIN_DIR="$PREFIX/bin"
 elif [[ "$EUID" -eq 0 ]]; then
     BIN_DIR="/usr/local/bin"
+elif [[ -d "$HOME/.cargo/bin" ]] && case ":$PATH:" in *":$HOME/.cargo/bin:"*) true;; *) false;; esac; then
+    BIN_DIR="$HOME/.cargo/bin"
 else
     BIN_DIR="$HOME/.local/bin"
 fi
