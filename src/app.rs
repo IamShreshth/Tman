@@ -107,25 +107,11 @@ impl App {
                 act("Theme", "Choose an accent color theme", "#", Outcome::Goto(Mode::Theme)),
             ],
             Mode::Bookmarks => {
-                let mut list = self.cfg.bookmarks.clone();
-                if list.is_empty() {
-                    let home = std::env::var("HOME").unwrap_or_default();
-                    for d in [
-                        home.clone(),
-                        format!("{home}/Downloads"),
-                        format!("{home}/Desktop"),
-                        format!("{home}/Documents"),
-                    ] {
-                        if Path::new(&d).is_dir() && !list.contains(&d) {
-                            list.push(d);
-                        }
-                    }
-                }
-                list.into_iter().map(|b| {
-                    let p = PathBuf::from(&b);
+                self.cfg.bookmarks.iter().map(|b| {
+                    let p = PathBuf::from(b);
                     let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| b.clone());
-                    let cmd = format!("cd -- {}", tfs::shell_quote(&b));
-                    Action { path: Some(p), is_dir: true, ..act(&name, &b, "*", Outcome::Emit(Cmd::run(cmd))) }
+                    let cmd = format!("cd -- {}", tfs::shell_quote(b));
+                    Action { path: Some(p), is_dir: true, ..act(&name, b, "*", Outcome::Emit(Cmd::run(cmd))) }
                 }).collect()
             },
             Mode::Theme => {
@@ -219,8 +205,20 @@ impl App {
     pub fn current(&self) -> Option<usize> { self.filtered.get(self.sel).copied() }
 
     fn rebuild(&mut self) {
+        let current_path = self.current().and_then(|i| self.items.get(i).and_then(|a| a.path.clone()));
+        let old_sel = self.sel;
         self.items = self.build();
         self.refilter();
+        if let Some(target) = current_path {
+            if let Some(pos) = self.filtered.iter().position(|&idx| self.items.get(idx).and_then(|a| a.path.as_ref()) == Some(&target)) {
+                self.sel = pos;
+            } else if !self.filtered.is_empty() {
+                self.sel = old_sel.min(self.filtered.len() - 1);
+            }
+        } else if !self.filtered.is_empty() {
+            self.sel = old_sel.min(self.filtered.len() - 1);
+        }
+        self.update_preview();
     }
     fn refilter(&mut self) {
         let q = &self.query;
@@ -266,7 +264,23 @@ impl App {
     // ---------- preview / context ----------
     pub fn update_preview(&mut self) {
         let Some(a) = self.current().map(|i| self.items[i].clone()) else {
-            self.preview = if self.mode == Mode::Menu { self.context() } else { Preview::default() };
+            self.preview = if self.mode == Mode::Menu {
+                self.context()
+            } else if self.mode == Mode::Bookmarks {
+                Preview {
+                    title: "BOOKMARKS".into(),
+                    lines: vec![
+                        "No bookmarks pinned yet.".into(),
+                        String::new(),
+                        "How to pin bookmarks:".into(),
+                        "  - Navigate to any directory and press [b]".into(),
+                        "  - Or press [b] from the main dashboard".into(),
+                        "  - Press [d] or [x] inside Bookmarks to remove".into(),
+                    ],
+                }
+            } else {
+                Preview::default()
+            };
             return;
         };
         let mode = self.mode.clone();
@@ -442,24 +456,32 @@ impl App {
             KeyCode::Char('q') => self.quit = true,
             KeyCode::Char('m') => { self.stack.clear(); self.mode = Mode::Menu; self.enter_mode(); }
             KeyCode::Char('b') if !self.searching => {
-                if self.mode == Mode::Files {
-                    if let Some(i) = self.current() {
-                        if let Some(p) = &self.items[i].path {
-                            if p.is_dir() {
-                                self.cfg.toggle_bookmark(p.to_string_lossy().to_string());
-                                self.rebuild();
-                                return;
+                match self.mode {
+                    Mode::Files => {
+                        if let Some(i) = self.current() {
+                            if let Some(p) = &self.items[i].path {
+                                if p.is_dir() {
+                                    self.cfg.toggle_bookmark(p.to_string_lossy().to_string());
+                                    self.rebuild();
+                                    return;
+                                }
                             }
                         }
-                    }
-                    self.cfg.toggle_bookmark(self.cwd.to_string_lossy().to_string());
-                    self.rebuild();
-                } else if self.mode == Mode::Bookmarks {
-                    if let Some(i) = self.current() {
-                        let path_str = self.items[i].desc.clone();
-                        self.cfg.remove_bookmark(&path_str);
+                        self.cfg.toggle_bookmark(self.cwd.to_string_lossy().to_string());
                         self.rebuild();
                     }
+                    Mode::Menu => {
+                        self.cfg.toggle_bookmark(self.cwd.to_string_lossy().to_string());
+                        self.rebuild();
+                    }
+                    Mode::Bookmarks => {
+                        if let Some(i) = self.current() {
+                            let path_str = self.items[i].desc.clone();
+                            self.cfg.remove_bookmark(&path_str);
+                            self.rebuild();
+                        }
+                    }
+                    _ => {}
                 }
             }
             KeyCode::Char('d' | 'x') if !self.searching && self.mode == Mode::Bookmarks => {

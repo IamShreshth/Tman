@@ -174,6 +174,7 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect, acc: Color) {
 
     if items.is_empty() {
         let msg = if app.mode == Mode::Git && app.git.is_none() { "Not inside a git repository." }
+            else if app.mode == Mode::Bookmarks { "No bookmarks pinned yet. Press 'b' in Navigate or Menu to pin a folder." }
             else if app.query.is_empty() { "Nothing here." } else { "No matches." };
         f.render_widget(Paragraph::new(msg).style(Style::default().fg(DIM)), list_area);
     } else {
@@ -196,7 +197,7 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect, acc: Color) {
 fn footer(app: &App, acc: Color) -> Line<'static> {
     let keys: &[(&str, &str)] = if app.overlay.is_some() { &[("Enter", "Confirm"), ("E", "Edit"), ("Esc", "Cancel")] } else {
         match &app.mode {
-            Mode::Menu => &[("↑↓", "Move"), ("Enter", "Open"), ("Esc", "Close")],
+            Mode::Menu => &[("↑↓", "Move"), ("Enter", "Open"), ("b", "Bookmark dir"), ("Esc", "Close")],
             Mode::Files => &[("↑↓", "Move"), ("→", "Enter dir"), ("←", "Parent"), ("Enter", "cd / open"), ("b", "Bookmark"), ("Tab", "Actions"), ("/", "Search"), (".", "Hidden"), ("m", "Menu"), ("Esc", "Close")],
             Mode::Bookmarks => &[("↑↓", "Move"), ("Enter", "Jump / cd"), ("d / x", "Delete pin"), ("←", "Back"), ("Esc", "Close")],
             Mode::History => &[("type", "Search"), ("↑↓", "Move"), ("Enter", "Run"), ("Tab", "Edit first"), ("←", "Back"), ("Esc", "Close")],
