@@ -2,3 +2,5 @@
 **/*.rs.bk
 *.pdb
 .DS_Store
+preview.png
+*.png

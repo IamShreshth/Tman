@@ -8,7 +8,11 @@
 [![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash-green.svg)](https://github.com/IamShreshth/Tman)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](requirements.txt)
 
-`tman` drops an interactive HUD directly over your active shell prompt with `Ctrl+Shift+T` (or `Ctrl+Space`), enabling directory navigation, workflow execution, history search, and bookmarks without context switching.
+<p align="center">
+  <img src="preview.png" alt="tman interface preview" width="850">
+</p>
+
+`tman` introduces a unified control layer over your active shell. Instead of context switching across terminal multiplexers or running repetitive status commands, pressing `Ctrl+Shift+T` (or `Ctrl+Space`) overlays an interactive HUD directly on top of your prompt—bringing system vitals, directory trees, project workflows, and command history into a single focal point.
 
 ---
 
@@ -32,13 +36,22 @@ Launch by pressing `Ctrl+Shift+T` (or `Ctrl+Space`), or run `tman`.
 
 ---
 
+## Overview
+
+- **Interactive Shell Layer**: An ephemeral HUD that takes over the terminal buffer on demand and returns cleanly to your command line without background daemons.
+- **Unified Telemetry**: Real-time host metrics—battery status, processor load averages, RAM allocation, disk capacity, and active Git branch states.
+- **Workflow Discovery**: Automatically senses repository types (Rust, Python, Node, Go, Docker, Make) and surfaces relevant actions.
+- **Persistent Bookmarks & Navigation**: Fast filesystem traversal with directory pinning and shell-integrated `cd`.
+
+---
+
 ## Requirements
 
-`tman` is written in Rust and compiles to a standalone, zero-dependency native binary. No Python, Node.js, or external runtimes are required.
+`tman` compiles to a self-contained native binary with zero runtime dependencies. No Python, Node.js, or auxiliary runtimes are required.
 
 - **OS**: macOS (Apple Silicon & Intel) or Linux (x86_64, aarch64)
 - **Shell**: Zsh (v5.0+) or Bash (v4.0+)
-- **Build tool**: Rust 1.70+ and Cargo (only if building from source)
+- **Build tool**: Rust 1.70+ and Cargo (only if compiling from source)
 
 See [requirements.txt](requirements.txt) for technical specifications.
 
@@ -84,13 +97,14 @@ eval "$(tman init zsh)"  # Add to ~/.zshrc
 ## Uninstallation
 
 ```bash
-rm -f ~/.local/bin/tman
+rm -f ~/.local/bin/tman ~/.cargo/bin/tman
 rm -rf ~/.config/tman
 ```
 
 Remove the `eval "$(tman init ...)"` line from your `~/.zshrc` or `~/.bashrc`.
 
+---
+
 ## License
 
 Licensed under the [MIT License](LICENSE).
-
