@@ -140,8 +140,7 @@ fn style_preview_line(l: &str, acc: Color) -> Line<'static> {
     let s = if l.starts_with("━━━") { Style::default().fg(acc).add_modifier(Modifier::BOLD) }
         else if l.starts_with('+') && !l.starts_with("+++") { Style::default().fg(Color::Rgb(80, 220, 150)) }
         else if l.starts_with('-') && !l.starts_with("---") { Style::default().fg(Color::Rgb(240, 100, 100)) }
-        else if l.starts_with("@@") { Style::default().fg(acc) }
-        else if l.starts_with('⚠') { Style::default().fg(Color::Rgb(240, 200, 90)).add_modifier(Modifier::BOLD) }
+        else if l.starts_with("[WARN]") || l.starts_with("WARNING:") { Style::default().fg(Color::Rgb(240, 200, 90)).add_modifier(Modifier::BOLD) }
         else if l.starts_with('▸') { Style::default().fg(acc) }
         else if l.starts_with("  Power:") || l.starts_with("  RAM:") || l.starts_with("  Uptime:") || l.starts_with("  Disk:") || l.starts_with("  Load:") {
             Style::default().fg(Color::Rgb(220, 225, 235))
@@ -216,7 +215,7 @@ fn footer(app: &App, acc: Color) -> Line<'static> {
 
 fn draw_overlay(f: &mut Frame, ov: &Overlay, acc: Color, area: Rect) {
     let (title, color, cmd, reason) = match ov {
-        Overlay::Danger(c, r) => ("⚠ DESTRUCTIVE ACTION", Color::Rgb(240, 100, 100), c, Some(*r)),
+        Overlay::Danger(c, r) => ("WARNING: DESTRUCTIVE ACTION", Color::Rgb(240, 100, 100), c, Some(*r)),
         Overlay::Preview(c) => ("COMMAND PREVIEW", acc, c, None),
     };
     let mut lines: Vec<Line> = vec![Line::raw("")];

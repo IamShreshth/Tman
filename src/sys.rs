@@ -76,8 +76,7 @@ pub fn battery() -> Option<String> {
                 if let Some(second) = parts.get(1) {
                     let sub: Vec<&str> = second.split(';').map(|s| s.trim()).collect();
                     if let (Some(pct), Some(status)) = (sub.get(0), sub.get(1)) {
-                        let icon = if status.contains("charging") || status.contains("AC") { "⚡" } else { "🔋" };
-                        return Some(format!("{icon} {pct} ({status})"));
+                        return Some(format!("{pct} ({status})"));
                     }
                 }
             }

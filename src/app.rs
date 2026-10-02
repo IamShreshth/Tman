@@ -99,12 +99,12 @@ impl App {
         match self.mode.clone() {
             Mode::Menu => vec![
                 act("Navigate", "Browse and jump between directories", "▸", Outcome::Goto(Mode::Files)),
-                act("Bookmarks", "Quick jump to pinned directories", "★", Outcome::Goto(Mode::Bookmarks)),
+                act("Bookmarks", "Quick jump to pinned directories", "*", Outcome::Goto(Mode::Bookmarks)),
                 act("History", "Search your real shell history", "↺", Outcome::Goto(Mode::History)),
                 act("Search", "Find files and folders below here", "⌕", Outcome::Goto(Mode::Find)),
                 act("Git", "Repository state and operations", "⎇", Outcome::Goto(Mode::Git)),
                 act("Run", "Commands discovered in this project", "▶", Outcome::Goto(Mode::Run)),
-                act("Theme", "Choose an accent color theme", "🎨", Outcome::Goto(Mode::Theme)),
+                act("Theme", "Choose an accent color theme", "#", Outcome::Goto(Mode::Theme)),
             ],
             Mode::Bookmarks => {
                 let mut list = self.cfg.bookmarks.clone();
@@ -125,28 +125,28 @@ impl App {
                     let p = PathBuf::from(&b);
                     let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| b.clone());
                     let cmd = format!("cd -- {}", tfs::shell_quote(&b));
-                    Action { path: Some(p), is_dir: true, ..act(&name, &b, "★", Outcome::Emit(Cmd::run(cmd))) }
+                    Action { path: Some(p), is_dir: true, ..act(&name, &b, "*", Outcome::Emit(Cmd::run(cmd))) }
                 }).collect()
             },
             Mode::Theme => {
                 let current = self.cfg.ui.accent.trim().to_lowercase();
                 let themes = [
-                    ("cyan", "Futuristic high-tech cyan (default)", "💎"),
-                    ("blue", "Electric royal blue", "🌊"),
-                    ("green", "Matrix / terminal emerald green", "🌿"),
-                    ("magenta", "Cyberpunk neon magenta", "🔮"),
-                    ("yellow", "Warm solar amber-yellow", "☀️"),
-                    ("red", "Bold neon crimson red", "🔥"),
-                    ("orange", "Warm retro sunset orange", "🍊"),
-                    ("purple", "Deep vaporwave violet", "👾"),
-                    ("pink", "Pastel aesthetic rose-pink", "🌸"),
-                    ("peach", "Soft warm aesthetic peach", "🍑"),
-                    ("teal", "Minty fresh sea-teal", "✨"),
-                    ("white", "Minimalist clean monochrome", "❄️"),
+                    ("cyan", "Futuristic high-tech cyan (default)", "#"),
+                    ("blue", "Electric royal blue", "#"),
+                    ("green", "Matrix / terminal emerald green", "#"),
+                    ("magenta", "Cyberpunk neon magenta", "#"),
+                    ("yellow", "Warm solar amber-yellow", "#"),
+                    ("red", "Bold neon crimson red", "#"),
+                    ("orange", "Warm retro sunset orange", "#"),
+                    ("purple", "Deep vaporwave violet", "#"),
+                    ("pink", "Pastel aesthetic rose-pink", "#"),
+                    ("peach", "Soft warm aesthetic peach", "#"),
+                    ("teal", "Minty fresh sea-teal", "#"),
+                    ("white", "Minimalist clean monochrome", "#"),
                 ];
                 themes.into_iter().map(|(name, desc, icon)| {
                     let is_curr = name == current;
-                    let display_name = if is_curr { format!("{name}  ✓") } else { name.to_string() };
+                    let display_name = if is_curr { format!("{name}  [active]") } else { name.to_string() };
                     act(&display_name, desc, icon, Outcome::Theme(name.to_string()))
                 }).collect()
             },
@@ -184,7 +184,7 @@ impl App {
                     let is_b = self.cfg.is_bookmarked(&p.to_string_lossy());
                     let label = if is_b { "Unpin bookmark" } else { "Bookmark folder" };
                     let desc = if is_b { "Remove from pinned bookmarks" } else { "Pin to quick bookmarks list" };
-                    v.push(act(label, desc, "★", Outcome::ToggleBookmark(p.clone())));
+                    v.push(act(label, desc, "*", Outcome::ToggleBookmark(p.clone())));
                 }
                 else { v.push(act("Open", "Open in your editor", "▸", Outcome::Emit(Cmd::run(format!("{editor} {q}"))))); }
                 v.push(match clipboard() {
@@ -208,7 +208,7 @@ impl App {
         let cmd = if is_dir { format!("cd -- {}", tfs::shell_quote(&path.to_string_lossy())) } else { format!("{editor} {q}") };
         let shown = if is_dir && !name.ends_with('/') { format!("{name}/") } else { name };
         let icon = if is_dir {
-            if self.cfg.is_bookmarked(&path.to_string_lossy()) { "★" } else { "▸" }
+            if self.cfg.is_bookmarked(&path.to_string_lossy()) { "*" } else { "▸" }
         } else {
             "·"
         };
@@ -304,7 +304,7 @@ impl App {
                 Preview { title: format!("BOOKMARK: {}", a.name), lines }
             }
             Mode::Theme => {
-                let color_name = a.name.trim_end_matches("  ✓");
+                let color_name = a.name.trim_end_matches("  [active]");
                 let lines = vec![
                     format!("Theme: {color_name}"),
                     a.desc.clone(),
@@ -323,7 +323,7 @@ impl App {
                 if let Outcome::Emit(c) = &a.out {
                     lines.push("Command".to_string());
                     lines.extend(c.text.lines().map(|l| format!("  {l}")));
-                    if let Some(r) = safety::classify(&c.text) { lines.push(String::new()); lines.push(format!("⚠ {r}")); }
+                    if let Some(r) = safety::classify(&c.text) { lines.push(String::new()); lines.push(format!("[WARN] {r}")); }
                 }
                 if !a.desc.is_empty() { lines.push(String::new()); lines.push(a.desc.clone()); }
                 Preview { title: a.name.clone(), lines }
@@ -337,13 +337,13 @@ impl App {
         if let Some(batt) = sys::battery() {
             l.push(format!("  Power:   {batt}"));
         }
-        l.push(format!("  Uptime:  ⏱️  {}", sys::uptime()));
-        l.push(format!("  Load:    ⚡ {}", sys::cpu_load()));
+        l.push(format!("  Uptime:  {}", sys::uptime()));
+        l.push(format!("  Load:    {}", sys::cpu_load()));
         if let Some(mem) = sys::memory() {
-            l.push(format!("  RAM:     🧠 {}", mem));
+            l.push(format!("  RAM:     {}", mem));
         }
         if let Some((free, used_pct)) = sys::disk_space(&self.cwd) {
-            l.push(format!("  Disk:    💾 {free} free ({used_pct} used)"));
+            l.push(format!("  Disk:    {free} free ({used_pct} used)"));
         }
         l.push(String::new());
 
@@ -356,7 +356,7 @@ impl App {
         let k = run::kinds(&self.cwd);
         if !k.is_empty() { l.push(format!("  Project: {}", k.join(", "))); }
         if self.cfg.is_bookmarked(&self.cwd.to_string_lossy()) {
-            l.push("  Status:  ★ Pinned in Bookmarks".to_string());
+            l.push("  Status:  Pinned in Bookmarks".to_string());
         }
         l.push(String::new());
 
