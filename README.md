@@ -6,10 +6,10 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/IamShreshth/Tman)
 [![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash-green.svg)](https://github.com/IamShreshth/Tman)
-[![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](requirements.txt)
+[![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](docs/requirements.txt)
 
 <p align="center">
-  <img src="preview.png" alt="tman interface preview" width="850">
+  <img src="docs/preview.png" alt="tman interface preview" width="850">
 </p>
 
 `tman` introduces a unified control layer over your active shell. Instead of context switching across terminal multiplexers or running repetitive status commands, pressing `Ctrl+Shift+T` (or `Ctrl+Space`) overlays an interactive HUD directly on top of your prompt—bringing system vitals, directory trees, project workflows, and command history into a single focal point.
@@ -21,7 +21,7 @@
 ### Single-Step Install
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
 ```
 
 Reload your shell to activate:
@@ -53,7 +53,7 @@ Launch by pressing `Ctrl+Shift+T` (or `Ctrl+Space`), or run `tman`.
 - **Shell**: Zsh (v5.0+) or Bash (v4.0+)
 - **Build tool**: Rust 1.70+ and Cargo (only if compiling from source)
 
-See [requirements.txt](requirements.txt) for technical specifications.
+See [requirements.txt](docs/requirements.txt) for technical specifications.
 
 ---
 
@@ -62,7 +62,7 @@ See [requirements.txt](requirements.txt) for technical specifications.
 ```bash
 git clone https://github.com/IamShreshth/Tman.git
 cd Tman
-./install.sh
+./files/install.sh
 ```
 
 Or install directly via Cargo:

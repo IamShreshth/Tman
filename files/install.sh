@@ -3,8 +3,9 @@
 # tman (terminalman) Installer
 # https://github.com/IamShreshth/Tman
 # ==============================================================================
+# ==============================================================================
 # Single-step install command:
-#   curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
 # ==============================================================================
 
 set -euo pipefail
@@ -89,13 +90,21 @@ mkdir -p "$BIN_DIR"
 
 INSTALLED=false
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT=""
 if [[ -f "./Cargo.toml" ]] && grep -q 'name = "tman"' "./Cargo.toml" 2>/dev/null; then
+    REPO_ROOT="."
+elif [[ -f "${SCRIPT_DIR}/../Cargo.toml" ]] && grep -q 'name = "tman"' "${SCRIPT_DIR}/../Cargo.toml" 2>/dev/null; then
+    REPO_ROOT="${SCRIPT_DIR}/.."
+fi
+
+if [[ -n "$REPO_ROOT" ]]; then
     info "Found local tman source repository. Building release binary..."
     if ! command -v cargo >/dev/null 2>&1; then
         error "Cargo is required to build from source. Install Rust from https://rustup.rs"
     fi
-    cargo build --release
-    cp "target/release/tman" "$BIN_DIR/tman"
+    (cd "$REPO_ROOT" && cargo build --release)
+    cp "${REPO_ROOT}/target/release/tman" "$BIN_DIR/tman"
     INSTALLED=true
 fi
 
