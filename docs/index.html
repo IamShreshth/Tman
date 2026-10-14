@@ -399,235 +399,37 @@
     <div class="container">
       <div class="section-header">
         <h2 class="section-title">Quick Installation</h2>
-        <p class="section-desc">Get started in seconds on macOS or Linux.</p>
+        <p class="section-desc">One command. That's it.</p>
       </div>
 
       <div class="install-tabs-card">
         <div class="install-tabs-nav" role="tablist">
-          <button class="inst-tab active" data-tab="curl" role="tab">Single-Step Script</button>
-          <button class="inst-tab" data-tab="cargo" role="tab">Cargo (Rust)</button>
-          <button class="inst-tab" data-tab="source" role="tab">Build from Source</button>
-          <button class="inst-tab" data-tab="linux" role="tab">🐧 Linux</button>
-          <button class="inst-tab" data-tab="docker" role="tab">Docker Sandbox</button>
+          <button class="inst-tab active" data-tab="macos" role="tab" id="tab-btn-macos"> macOS</button>
+          <button class="inst-tab" data-tab="linux" role="tab" id="tab-btn-linux">🐧 Linux</button>
         </div>
 
-        <div class="install-tab-content active" id="tab-curl">
-          <p class="tab-note">Downloads the standalone binary, detects architecture (x86_64 or aarch64), and configures your shell hook automatically:</p>
+        <!-- macOS -->
+        <div class="install-tab-content active" id="tab-macos">
+          <p class="tab-note">Paste this in your terminal — it installs tman and wires up your shell hook automatically:</p>
           <div class="code-block">
             <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
             <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy command">Copy</button>
           </div>
-          <div class="tab-note mt-2">Then reload your active shell:</div>
-          <div class="code-block">
-            <pre><code>source ~/.zshrc   # If using Zsh
-# OR
-source ~/.bashrc  # If using Bash</code></pre>
-            <button class="code-copy-btn" data-clipboard="source ~/.zshrc # OR source ~/.bashrc" aria-label="Copy command">Copy</button>
-          </div>
+          <p class="tab-note mt-2">Then reload your shell: <code>source ~/.zshrc</code> &nbsp;·&nbsp; Press <kbd>Ctrl+Shift+T</kbd> to open tman.</p>
         </div>
 
-        <div class="install-tab-content" id="tab-cargo">
-          <p class="tab-note">Compile and install via Cargo directly from the repository:</p>
-          <div class="code-block">
-            <pre><code>cargo install --git https://github.com/IamShreshth/Tman.git --locked</code></pre>
-            <button class="code-copy-btn" data-clipboard="cargo install --git https://github.com/IamShreshth/Tman.git --locked" aria-label="Copy command">Copy</button>
-          </div>
-          <div class="tab-note mt-2">Append the hook to your shell configuration:</div>
-          <div class="code-block">
-            <pre><code># For Zsh:
-echo 'eval "$(tman init zsh)"' >> ~/.zshrc
-
-# For Bash:
-echo 'eval "$(tman init bash)"' >> ~/.bashrc</code></pre>
-            <button class="code-copy-btn" data-clipboard="echo 'eval &quot;$(tman init zsh)&quot;' >> ~/.zshrc" aria-label="Copy command">Copy</button>
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-source">
-          <p class="tab-note">Clone the repository and run the local builder:</p>
-          <div class="code-block">
-            <pre><code>git clone https://github.com/IamShreshth/Tman.git
-cd Tman
-./files/install.sh</code></pre>
-            <button class="code-copy-btn" data-clipboard="git clone https://github.com/IamShreshth/Tman.git &amp;&amp; cd Tman &amp;&amp; ./files/install.sh" aria-label="Copy command">Copy</button>
-          </div>
-        </div>
-
-        <!-- Linux distro-specific tab -->
+        <!-- Linux -->
         <div class="install-tab-content" id="tab-linux">
-          <p class="tab-note">Select your distribution for exact steps. The installer auto-detects your arch (<code>x86_64</code> / <code>aarch64</code>) and libc (<code>glibc</code> / <code>musl</code>).</p>
-
-          <!-- Distro pills -->
-          <div class="distro-pills" role="tablist" id="distro-pills">
-            <button class="distro-pill active" data-distro="ubuntu" role="tab" id="dpill-ubuntu">Ubuntu / Debian</button>
-            <button class="distro-pill" data-distro="fedora" role="tab" id="dpill-fedora">Fedora</button>
-            <button class="distro-pill" data-distro="arch" role="tab" id="dpill-arch">Arch Linux</button>
-            <button class="distro-pill" data-distro="alpine" role="tab" id="dpill-alpine">Alpine (musl)</button>
-            <button class="distro-pill" data-distro="universal" role="tab" id="dpill-universal">Any Distro ★</button>
-          </div>
-
-          <!-- Ubuntu / Debian -->
-          <div class="distro-content active" id="dc-ubuntu">
-            <div class="distro-step">
-              <span class="step-num">1</span>
-              <div>
-                <strong>Install toolchain</strong> (skip if Rust is already installed):
-                <div class="code-block mt-1">
-                  <pre><code>sudo apt update &amp;&amp; sudo apt install -y cargo rustc</code></pre>
-                  <button class="code-copy-btn" data-clipboard="sudo apt update && sudo apt install -y cargo rustc">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">2</span>
-              <div>
-                <strong>Run the installer</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">3</span>
-              <div>
-                <strong>Reload your shell</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>source ~/.bashrc   # or ~/.zshrc</code></pre>
-                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Fedora -->
-          <div class="distro-content" id="dc-fedora">
-            <div class="distro-step">
-              <span class="step-num">1</span>
-              <div>
-                <strong>Install toolchain</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>sudo dnf install -y cargo rust</code></pre>
-                  <button class="code-copy-btn" data-clipboard="sudo dnf install -y cargo rust">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">2</span>
-              <div>
-                <strong>Run the installer</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">3</span>
-              <div>
-                <strong>Reload your shell</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>source ~/.bashrc   # or ~/.zshrc</code></pre>
-                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Arch Linux -->
-          <div class="distro-content" id="dc-arch">
-            <div class="distro-step">
-              <span class="step-num">1</span>
-              <div>
-                <strong>Install Rust toolchain</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>sudo pacman -S --noconfirm rust</code></pre>
-                  <button class="code-copy-btn" data-clipboard="sudo pacman -S --noconfirm rust">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">2</span>
-              <div>
-                <strong>Run the installer</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">3</span>
-              <div>
-                <strong>Reload your shell</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>source ~/.bashrc   # or ~/.zshrc</code></pre>
-                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
-                </div>
-                <p class="tab-note mt-1"><em>AUR users:</em> You can also try <code>yay -S tman</code> or <code>paru -S tman</code> once a package lands.</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Alpine -->
-          <div class="distro-content" id="dc-alpine">
-            <div class="distro-step">
-              <span class="step-num">1</span>
-              <div>
-                <strong>Install build dependencies (musl libc)</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>sudo apk add cargo rust bash curl</code></pre>
-                  <button class="code-copy-btn" data-clipboard="sudo apk add cargo rust bash curl">Copy</button>
-                </div>
-              </div>
-            </div>
-            <div class="distro-step">
-              <span class="step-num">2</span>
-              <div>
-                <strong>Run the installer</strong> (auto-detects musl target):
-                <div class="code-block mt-1">
-                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Universal -->
-          <div class="distro-content" id="dc-universal">
-            <div class="distro-step">
-              <span class="step-num">★</span>
-              <div>
-                <strong>Universal one-liner for any Linux distro</strong>:
-                <div class="code-block mt-1">
-                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
-                </div>
-                <p class="tab-note mt-1">The script detects your arch, libc, and shell — binding to <code>~/.bashrc</code> or <code>~/.zshrc</code> automatically.</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="linux-tab-footer">
-            💡 <strong>Keyboard tip:</strong> On Linux, use <kbd>Ctrl+Space</kbd> to trigger tman — many terminals intercept <kbd>Ctrl+Shift+T</kbd> for "New Tab".
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-docker">
-          <p class="tab-note">Test the Linux build without modifying your local system:</p>
+          <p class="tab-note">Same single command — auto-detects your distro, arch (<code>x86_64</code> / <code>aarch64</code>), and libc (<code>glibc</code> / <code>musl</code>):</p>
           <div class="code-block">
-            <pre><code># Run tests inside clean Linux container:
-docker run --rm -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo test
-
-# Launch the interactive overlay in Linux:
-docker run --rm -it -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui</code></pre>
-            <button class="code-copy-btn" data-clipboard="docker run --rm -it -v &quot;$PWD&quot;:/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui" aria-label="Copy command">Copy</button>
+            <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+            <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy command">Copy</button>
           </div>
+          <p class="tab-note mt-2">Then reload your shell: <code>source ~/.bashrc</code> &nbsp;·&nbsp; Use <kbd>Ctrl+Space</kbd> on Linux (many terminals intercept <kbd>Ctrl+Shift+T</kbd>).</p>
         </div>
       </div>
     </div>
   </section>
-
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
