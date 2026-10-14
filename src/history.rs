@@ -29,20 +29,38 @@ pub fn load() -> Vec<String> {
 }
 
 fn parse_line(line: &str) -> &str {
+    let trimmed = line.trim();
     // zsh extended format: ": 1700000000:0;command"
-    if line.starts_with(": ") {
-        if let Some((_, c)) = line.split_once(';') {
+    if trimmed.starts_with(": ") {
+        if let Some((_, c)) = trimmed.split_once(';') {
             return c.trim();
         }
     }
-    line.trim()
+    // bash timestamp format with HISTTIMEFORMAT: "#1700000000"
+    if trimmed.starts_with('#') {
+        let rest = &trimmed[1..];
+        if !rest.is_empty() && rest.chars().all(|c| c.is_ascii_digit()) {
+            return "";
+        }
+    }
+    trimmed
 }
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn zsh_extended() {
-        assert_eq!(super::parse_line(": 1700000000:0;git status"), "git status");
-        assert_eq!(super::parse_line("  ls -la"), "ls -la");
+        assert_eq!(parse_line(": 1700000000:0;git status"), "git status");
+        assert_eq!(parse_line("  ls -la"), "ls -la");
+    }
+
+    #[test]
+    fn bash_timestamps() {
+        assert_eq!(parse_line("#1700000000"), "");
+        assert_eq!(parse_line("  #1680000000  "), "");
+        assert_eq!(parse_line("# regular comment"), "# regular comment");
+        assert_eq!(parse_line("cargo test #1"), "cargo test #1");
     }
 }

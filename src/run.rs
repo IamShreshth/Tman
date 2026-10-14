@@ -14,6 +14,7 @@ pub fn kinds(cwd: &Path) -> Vec<&'static str> {
         ("Makefile", "Make"),
         ("justfile", "Just"),
         ("Justfile", "Just"),
+        ("CMakeLists.txt", "CMake"),
         ("pyproject.toml", "Python"),
         ("requirements.txt", "Python"),
         (".venv", "Python (venv)"),
@@ -120,6 +121,13 @@ pub fn discover(cwd: &Path) -> Vec<RunItem> {
                     v.push(RunItem { cmd: format!("make {t}"), source: "Makefile" });
                 }
             }
+        }
+    }
+
+    // CMake (CMakeLists.txt)
+    if cwd.join("CMakeLists.txt").exists() {
+        for c in ["cmake -B build", "cmake --build build", "ctest --test-dir build"] {
+            v.push(RunItem { cmd: c.into(), source: "CMakeLists.txt" });
         }
     }
 

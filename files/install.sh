@@ -48,7 +48,11 @@ case "$OS" in
         OS_TYPE="apple-darwin"
         ;;
     Linux)
-        OS_TYPE="unknown-linux-gnu"
+        if ldd --version 2>&1 | grep -iq musl || ls /lib/ld-musl* >/dev/null 2>&1; then
+            OS_TYPE="unknown-linux-musl"
+        else
+            OS_TYPE="unknown-linux-gnu"
+        fi
         ;;
     *)
         error "Unsupported operating system: $OS. tman supports macOS and Linux."
@@ -176,8 +180,19 @@ case "$CURRENT_SHELL" in
         SHELL_KIND="bash"
         ;;
     *)
-        RC_FILE=""
-        SHELL_KIND="zsh"
+        if [[ -f "$HOME/.bashrc" ]]; then
+            RC_FILE="$HOME/.bashrc"
+            SHELL_KIND="bash"
+        elif [[ -f "$HOME/.zshrc" ]]; then
+            RC_FILE="$HOME/.zshrc"
+            SHELL_KIND="zsh"
+        elif [[ -f "$HOME/.profile" ]]; then
+            RC_FILE="$HOME/.profile"
+            SHELL_KIND="bash"
+        else
+            RC_FILE=""
+            SHELL_KIND="bash"
+        fi
         ;;
 esac
 
@@ -207,7 +222,7 @@ echo "To activate tman immediately in your current terminal:"
 if [[ -n "$RC_FILE" ]]; then
     printf "  ${CYAN}source %s${RESET}\n\n" "$RC_FILE"
 else
-    printf "  ${CYAN}eval \"\$(tman init zsh)\"${RESET}\n\n"
+    printf "  ${CYAN}eval \"\$(tman init %s)\"${RESET}\n\n" "$SHELL_KIND"
 fi
 
 echo "Usage:"

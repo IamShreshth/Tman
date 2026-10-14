@@ -27,3 +27,6 @@
 #   - docker / docker compose (for container workflows)
 #   - python / poetry / pytest (for Python project workflows)
 #   - node / npm / pnpm / yarn / bun (for JavaScript / TypeScript project workflows)
+#   - cmake / make / just (for C/C++ and build automation workflows)
+#   - wl-copy / xclip / xsel (for Linux Wayland / X11 clipboard integration)
+#   - xdg-open / open (for opening files and folders in default desktop apps)

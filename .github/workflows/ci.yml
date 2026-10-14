@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "linux" ]
+  pull_request:
+    branches: [ "main", "linux" ]
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cargo Check
+        run: cargo check --verbose
+
+      - name: Run Tests
+        run: cargo test --verbose
