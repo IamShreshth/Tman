@@ -167,12 +167,20 @@ impl App {
                 let mut v = vec![];
                 if is_dir {
                     v.push(act("Go here", "cd into this directory", "▸", Outcome::Emit(Cmd::run(format!("cd -- {}", tfs::shell_quote(&p.to_string_lossy()))))));
+                    if let Some(op) = system_opener() {
+                        v.push(act("Open file manager", "Open in default file manager", "▸", Outcome::Emit(Cmd::run(format!("{op} {}", tfs::shell_quote(&p.to_string_lossy()))))));
+                    }
                     let is_b = self.cfg.is_bookmarked(&p.to_string_lossy());
                     let label = if is_b { "Unpin bookmark" } else { "Bookmark folder" };
                     let desc = if is_b { "Remove from pinned bookmarks" } else { "Pin to quick bookmarks list" };
                     v.push(act(label, desc, "*", Outcome::ToggleBookmark(p.clone())));
                 }
-                else { v.push(act("Open", "Open in your editor", "▸", Outcome::Emit(Cmd::run(format!("{editor} {q}"))))); }
+                else {
+                    v.push(act("Open", "Open in your editor", "▸", Outcome::Emit(Cmd::run(format!("{editor} {q}")))));
+                    if let Some(op) = system_opener() {
+                        v.push(act("Open with app", "Open in default system application", "▸", Outcome::Emit(Cmd::run(format!("{op} {q}")))));
+                    }
+                }
                 v.push(match clipboard() {
                     Some(c) => act("Copy path", "Copy absolute path to clipboard", "▸", Outcome::Emit(Cmd::run(format!("printf %s {} | {c}", tfs::shell_quote(&p.to_string_lossy()))))),
                     None => act("Print path", "No clipboard tool found", "▸", Outcome::Emit(Cmd::run(format!("echo {}", tfs::shell_quote(&p.to_string_lossy()))))),
@@ -516,6 +524,14 @@ impl App {
 fn clipboard() -> Option<&'static str> {
     let path = std::env::var_os("PATH")?;
     [("pbcopy", "pbcopy"), ("wl-copy", "wl-copy"), ("xclip", "xclip -selection clipboard"), ("xsel", "xsel -b -i")]
+        .into_iter()
+        .find(|(bin, _)| std::env::split_paths(&path).any(|d| d.join(bin).is_file()))
+        .map(|(_, cmd)| cmd)
+}
+
+fn system_opener() -> Option<&'static str> {
+    let path = std::env::var_os("PATH")?;
+    [("xdg-open", "xdg-open"), ("open", "open")]
         .into_iter()
         .find(|(bin, _)| std::env::split_paths(&path).any(|d| d.join(bin).is_file()))
         .map(|(_, cmd)| cmd)

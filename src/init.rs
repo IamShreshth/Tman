@@ -29,7 +29,7 @@ pub fn script(shell: &str, cfg: &Config) -> Option<String> {
             let primary = zsh_key(key);
             let extra = if key.to_lowercase().contains("shift") && key.to_lowercase().contains("ctrl") {
                 if key.to_lowercase().ends_with('t') {
-                    "\nbindkey '\\e[84;6u' tman-widget 2>/dev/null || true\nbindkey '\\e[116;6u' tman-widget 2>/dev/null || true\nbindkey '\\e[20;6~' tman-widget 2>/dev/null || true"
+                    "\nbindkey '^@' tman-widget 2>/dev/null || true\nbindkey '\\e[84;6u' tman-widget 2>/dev/null || true\nbindkey '\\e[116;6u' tman-widget 2>/dev/null || true\nbindkey '\\e[20;6~' tman-widget 2>/dev/null || true"
                 } else {
                     ""
                 }
@@ -75,7 +75,18 @@ zle -N tman-widget
 bindkey '{}' tman-widget{}
 "#, primary, extra))
         },
-        "bash" => Some(format!(r#"# tman bash integration: eval "$(tman init bash)"
+        "bash" => {
+            let primary = bash_key(key);
+            let extra = if key.to_lowercase().contains("shift") && key.to_lowercase().contains("ctrl") {
+                if key.to_lowercase().ends_with('t') {
+                    "\nbind -x '\"\\C-@\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[84;6u\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[116;6u\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[20;6~\": __tman_widget' 2>/dev/null || true"
+                } else {
+                    ""
+                }
+            } else {
+                ""
+            };
+            Some(format!(r#"# tman bash integration: eval "$(tman init bash)"
 tman() {{
   if [[ $# -eq 0 || "$1" == "ui" ]]; then
     local hist out mode cmd
@@ -103,8 +114,9 @@ __tman_widget() {{
     READLINE_POINT=${{#READLINE_LINE}}
   fi
 }}
-bind -x '"{}": __tman_widget'
-"#, bash_key(key))),
+bind -x '"{primary}": __tman_widget'{extra}
+"#))
+        },
         _ => None,
     }
 }

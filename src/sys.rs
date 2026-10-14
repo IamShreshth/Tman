@@ -7,6 +7,15 @@ pub fn cpu_load() -> String {
     if ret == 3 {
         format!("{:.2}  {:.2}  {:.2}", load[0], load[1], load[2])
     } else {
+        #[cfg(target_os = "linux")]
+        {
+            if let Ok(s) = std::fs::read_to_string("/proc/loadavg") {
+                let parts: Vec<&str> = s.split_whitespace().take(3).collect();
+                if parts.len() == 3 {
+                    return parts.join("  ");
+                }
+            }
+        }
         "N/A".into()
     }
 }
@@ -22,8 +31,13 @@ pub fn disk_space(path: &Path) -> Option<(String, String)> {
     let c_path = CString::new(path.to_string_lossy().as_bytes()).ok()?;
     let mut stat: libc::statvfs = unsafe { std::mem::zeroed() };
     if unsafe { libc::statvfs(c_path.as_ptr(), &mut stat) } == 0 {
-        let free = (stat.f_bavail as u64) * (stat.f_frsize as u64);
-        let total = (stat.f_blocks as u64) * (stat.f_frsize as u64);
+        let block_size = if stat.f_frsize != 0 {
+            stat.f_frsize as u64
+        } else {
+            stat.f_bsize as u64
+        };
+        let free = (stat.f_bavail as u64) * block_size;
+        let total = (stat.f_blocks as u64) * block_size;
         let used = total.saturating_sub(free);
         let pct = if total > 0 { (used as f64 / total as f64) * 100.0 } else { 0.0 };
         Some((format_bytes(free), format!("{pct:.0}%")))
@@ -62,26 +76,84 @@ pub fn uptime() -> String {
             }
         }
     }
+    #[cfg(target_os = "linux")]
+    {
+        let mut info: libc::sysinfo = unsafe { std::mem::zeroed() };
+        if unsafe { libc::sysinfo(&mut info) } == 0 && info.uptime > 0 {
+            return format_duration(info.uptime as u64);
+        }
+    }
     "N/A".into()
 }
 
+#[cfg(target_os = "macos")]
 pub fn battery() -> Option<String> {
-    #[cfg(target_os = "macos")]
-    {
-        let out = std::process::Command::new("pmset").arg("-g").arg("batt").output().ok()?;
-        let text = String::from_utf8_lossy(&out.stdout);
-        for line in text.lines() {
-            if line.contains('%') {
-                let parts: Vec<&str> = line.split('\t').collect();
-                if let Some(second) = parts.get(1) {
-                    let sub: Vec<&str> = second.split(';').map(|s| s.trim()).collect();
-                    if let (Some(pct), Some(status)) = (sub.get(0), sub.get(1)) {
-                        return Some(format!("{pct} ({status})"));
-                    }
+    let out = std::process::Command::new("pmset").arg("-g").arg("batt").output().ok()?;
+    let text = String::from_utf8_lossy(&out.stdout);
+    for line in text.lines() {
+        if line.contains('%') {
+            let parts: Vec<&str> = line.split('\t').collect();
+            if let Some(second) = parts.get(1) {
+                let sub: Vec<&str> = second.split(';').map(|s| s.trim()).collect();
+                if let (Some(pct), Some(status)) = (sub.get(0), sub.get(1)) {
+                    return Some(format!("{pct} ({status})"));
                 }
             }
         }
     }
+    None
+}
+
+#[cfg(target_os = "linux")]
+pub fn battery() -> Option<String> {
+    let power_supply = Path::new("/sys/class/power_supply");
+    if let Ok(entries) = std::fs::read_dir(power_supply) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let is_bat = entry.file_name().to_string_lossy().starts_with("BAT")
+                || std::fs::read_to_string(path.join("type"))
+                    .map(|t| t.trim().eq_ignore_ascii_case("battery"))
+                    .unwrap_or(false);
+
+            if is_bat {
+                let capacity = std::fs::read_to_string(path.join("capacity"))
+                    .ok()
+                    .and_then(|c| c.trim().parse::<u32>().ok())
+                    .or_else(|| {
+                        let now = std::fs::read_to_string(path.join("energy_now"))
+                            .or_else(|_| std::fs::read_to_string(path.join("charge_now")))
+                            .ok()?
+                            .trim()
+                            .parse::<f64>()
+                            .ok()?;
+                        let full = std::fs::read_to_string(path.join("energy_full"))
+                            .or_else(|_| std::fs::read_to_string(path.join("charge_full")))
+                            .ok()?
+                            .trim()
+                            .parse::<f64>()
+                            .ok()?;
+                        if full > 0.0 {
+                            Some(((now / full) * 100.0).round() as u32)
+                        } else {
+                            None
+                        }
+                    });
+
+                let status = std::fs::read_to_string(path.join("status"))
+                    .map(|s| s.trim().to_string())
+                    .unwrap_or_else(|_| "Unknown".to_string());
+
+                if let Some(cap) = capacity {
+                    return Some(format!("{cap}% ({status})"));
+                }
+            }
+        }
+    }
+    None
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
+pub fn battery() -> Option<String> {
     None
 }
 
@@ -99,7 +171,31 @@ pub fn memory() -> Option<String> {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(target_os = "linux")]
+pub fn memory() -> Option<String> {
+    if let Ok(s) = std::fs::read_to_string("/proc/meminfo") {
+        for line in s.lines() {
+            if line.starts_with("MemTotal:") {
+                let parts: Vec<&str> = line.split_whitespace().collect();
+                if let Some(kb_str) = parts.get(1) {
+                    if let Ok(kb) = kb_str.parse::<u64>() {
+                        return Some(format_bytes(kb * 1024));
+                    }
+                }
+            }
+        }
+    }
+    let mut info: libc::sysinfo = unsafe { std::mem::zeroed() };
+    if unsafe { libc::sysinfo(&mut info) } == 0 {
+        let total = (info.totalram as u64) * (info.mem_unit as u64);
+        if total > 0 {
+            return Some(format_bytes(total));
+        }
+    }
+    None
+}
+
+#[cfg(not(any(target_os = "macos", target_os = "linux")))]
 pub fn memory() -> Option<String> {
     None
 }
