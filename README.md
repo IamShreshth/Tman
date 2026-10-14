@@ -39,6 +39,62 @@ Press `Ctrl+Shift+T` (or `Ctrl+Space`) anywhere in your shell, or run `tman`.
 
 ---
 
+## Linux Installation
+
+### Universal (All Distros)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+```
+
+### Fedora
+
+```bash
+# Install Rust toolchain (required to build from source)
+sudo dnf install -y cargo rust
+
+# Install tman
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+
+# Activate (add to ~/.bashrc or ~/.zshrc)
+echo 'eval "$(tman init bash)"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Arch Linux
+
+```bash
+# Install Rust toolchain
+sudo pacman -S --noconfirm rust
+
+# Install tman
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+
+# Activate (add to ~/.bashrc or ~/.zshrc)
+echo 'eval "$(tman init bash)"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+> **AUR users:** If an AUR package becomes available, you can also use `yay -S tman` or `paru -S tman`.
+
+### Ubuntu / Debian
+
+```bash
+# Install Rust toolchain
+sudo apt update && sudo apt install -y cargo rustc
+
+# Install tman
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+
+# Activate (add to ~/.bashrc or ~/.zshrc)
+echo 'eval "$(tman init bash)"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+> **Note on keybindings:** Most Linux terminal emulators intercept `Ctrl+Shift+T` (e.g., GNOME Terminal uses it to open a new tab). Use `Ctrl+Space` instead by setting `open = "ctrl-space"` in your tman config (`~/.config/tman/config.toml`).
+
+---
+
 ## Capabilities
 
 - **Zero-Daemon HUD**: Ephemeral full-screen overlay that takes ownership of the terminal buffer and releases it cleanly on exit.

@@ -94,11 +94,11 @@ mkdir -p "$BIN_DIR"
 
 INSTALLED=false
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)" || SCRIPT_DIR=""
 REPO_ROOT=""
 if [[ -f "./Cargo.toml" ]] && grep -q 'name = "tman"' "./Cargo.toml" 2>/dev/null; then
     REPO_ROOT="."
-elif [[ -f "${SCRIPT_DIR}/../Cargo.toml" ]] && grep -q 'name = "tman"' "${SCRIPT_DIR}/../Cargo.toml" 2>/dev/null; then
+elif [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/../Cargo.toml" ]] && grep -q 'name = "tman"' "${SCRIPT_DIR}/../Cargo.toml" 2>/dev/null; then
     REPO_ROOT="${SCRIPT_DIR}/.."
 fi
 
