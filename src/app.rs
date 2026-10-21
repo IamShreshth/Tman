@@ -44,7 +44,7 @@ fn act(name: &str, desc: &str, icon: &'static str, out: Outcome) -> Action {
 }
 
 pub enum Overlay { Danger(Cmd, &'static str), Preview(Cmd) }
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Preview { pub title: String, pub lines: Vec<String> }
 
 pub struct App {
@@ -61,6 +61,7 @@ pub struct App {
     pub searching: bool,
     pub overlay: Option<Overlay>,
     pub preview: Preview,
+    ctx_cache: Option<Preview>,
     pub entered: Instant,
     pub quit: bool,
     pub result: Option<String>,
@@ -74,7 +75,7 @@ impl App {
         let mut a = App {
             show_hidden: cfg.ui.show_hidden, git: git::info(&cwd), start_cwd: cwd.clone(), cwd, cfg,
             mode: Mode::Menu, stack: vec![], items: vec![], filtered: vec![], sel: 0, query: String::new(),
-            searching: false, overlay: None, preview: Preview::default(), entered: Instant::now(),
+            searching: false, overlay: None, preview: Preview::default(), ctx_cache: None, entered: Instant::now(),
             quit: false, result: None, state: ListState::default(), hist: None,
         };
         a.rebuild();
@@ -157,10 +158,13 @@ impl App {
                 ]
             }
             Mode::GitFiles => git::changed_files(&self.cwd).into_iter().map(|(st, p)| {
-                let name = format!("{:<2} {}", st, p.strip_prefix(&self.cwd).unwrap_or(&p).display());
-                Action { path: Some(p.clone()), out: Outcome::Goto(Mode::Actions(p)), ..act(&name, "", "·", Outcome::Goto(Mode::Menu)) }
+                let name = format!("{:<2} {}", st.trim(), p.strip_prefix(&self.cwd).unwrap_or(&p).display());
+                Action { path: Some(p.clone()), out: Outcome::Goto(Mode::Actions(p)), ..act(&name, &st, "·", Outcome::Goto(Mode::Menu)) }
             }).collect(),
-            Mode::Run => run::discover(&self.cwd).into_iter().map(|r| act(&r.cmd, r.source, "▶", Outcome::Emit(Cmd::run(r.cmd.clone())))).collect(),
+            Mode::Run => {
+                let root = self.git.as_ref().map(|g| g.root.as_path());
+                run::discover(&self.cwd, root).into_iter().map(|r| act(&r.cmd, &r.source, "▶", Outcome::Emit(Cmd::run(r.cmd.clone())))).collect()
+            }
             Mode::Actions(p) => {
                 let q = self.rel(&p);
                 let is_dir = p.is_dir();
@@ -189,6 +193,7 @@ impl App {
                     v.push(act("Git diff", "Changes vs HEAD", "⎇", Outcome::Emit(Cmd::run(format!("git diff HEAD -- {q}")))));
                     v.push(act("Git history", "Commits touching this file", "⎇", Outcome::Emit(Cmd::run(format!("git log --oneline -n 20 -- {q}")))));
                     v.push(act("Blame", "Per-line authorship", "⎇", Outcome::Emit(Cmd::run(format!("git blame {q}")))));
+                    v.push(act("Discard changes", "Restore working-tree file to HEAD", "!", Outcome::Emit(Cmd::run(format!("git checkout -- {q}")))));
                 }
                 v.push(act("Rename", "Pre-fills mv; you edit the target", "▸", Outcome::Emit(Cmd::edit(format!("mv -- {q} {q}")))));
                 v.push(act("Delete", "Always asks for confirmation", "!", Outcome::Emit(Cmd::run(format!("rm {}-- {q}", if is_dir { "-r " } else { "" })))));
@@ -256,6 +261,7 @@ impl App {
     fn chdir(&mut self, p: PathBuf, select: Option<PathBuf>) {
         self.cwd = p;
         self.git = git::info(&self.cwd);
+        self.ctx_cache = None;
         self.query.clear();
         self.rebuild();
         if let Some(s) = select {
@@ -273,7 +279,7 @@ impl App {
     pub fn update_preview(&mut self) {
         let Some(a) = self.current().map(|i| self.items[i].clone()) else {
             self.preview = if self.mode == Mode::Menu {
-                self.context()
+                self.cached_context()
             } else if self.mode == Mode::Bookmarks {
                 Preview {
                     title: "BOOKMARKS".into(),
@@ -293,7 +299,7 @@ impl App {
         };
         let mode = self.mode.clone();
         self.preview = match mode {
-            Mode::Menu => self.context(),
+            Mode::Menu => self.cached_context(),
             Mode::GitFiles => {
                 let p = a.path.clone().unwrap();
                 let mut lines = git::diff_preview(&self.cwd, &p, 80);
@@ -352,6 +358,12 @@ impl App {
             }
         };
     }
+    fn cached_context(&mut self) -> Preview {
+        if let Some(c) = &self.ctx_cache { return c.clone(); }
+        let c = self.context();
+        self.ctx_cache = Some(c.clone());
+        c
+    }
     fn context(&self) -> Preview {
         let mut l = vec![];
 
@@ -375,7 +387,7 @@ impl App {
             Some(g) => l.push(format!("  Git:     ⎇ {}  +{} ~{} ?{}", g.branch, g.staged, g.modified, g.untracked)),
             None => l.push("  Git:     not a git repository".into()),
         }
-        let k = run::kinds(&self.cwd);
+        let k = run::kinds(&self.cwd, self.git.as_ref().map(|g| g.root.as_path()));
         if !k.is_empty() { l.push(format!("  Project: {}", k.join(", "))); }
         if self.cfg.is_bookmarked(&self.cwd.to_string_lossy()) {
             l.push("  Status:  Pinned in Bookmarks".to_string());
@@ -416,6 +428,7 @@ impl App {
             }
             Outcome::ToggleBookmark(p) => {
                 self.cfg.toggle_bookmark(p.to_string_lossy().to_string());
+                self.ctx_cache = None;
                 self.rebuild();
             }
         }
@@ -463,7 +476,19 @@ impl App {
             KeyCode::Char('/') if self.mode != Mode::Menu => self.searching = true,
             KeyCode::Char('q') => self.quit = true,
             KeyCode::Char('m') => { self.stack.clear(); self.mode = Mode::Menu; self.enter_mode(); }
+            KeyCode::Char(' ') if !self.searching && self.mode == Mode::GitFiles => {
+                if let Some(i) = self.current() {
+                    if let Some(p) = self.items[i].path.clone() {
+                        let st = self.items[i].desc.clone();
+                        git::toggle_stage(&self.cwd, &p, &st);
+                        self.git = git::info(&self.cwd);
+                        self.ctx_cache = None;
+                        self.rebuild();
+                    }
+                }
+            }
             KeyCode::Char('b') if !self.searching => {
+                self.ctx_cache = None;
                 match self.mode {
                     Mode::Files => {
                         if let Some(i) = self.current() {

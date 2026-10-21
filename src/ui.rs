@@ -116,6 +116,9 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let mut h = vec![Span::styled(display_path(&app.cwd), Style::default().add_modifier(Modifier::BOLD))];
     if let Some(g) = &app.git {
         h.push(Span::styled(format!("   ⎇ {}", g.branch), Style::default().fg(Color::Rgb(80, 220, 150))));
+        if g.ahead > 0 || g.behind > 0 {
+            h.push(Span::styled(format!(" ↑{} ↓{}", g.ahead, g.behind), Style::default().fg(acc)));
+        }
         h.push(Span::styled(format!("  +{} ~{} ?{}", g.staged, g.modified, g.untracked), Style::default().fg(DIM)));
     }
     f.render_widget(Paragraph::new(Line::from(h)).block(block("tman".into(), acc)), rows[0]);
@@ -202,6 +205,7 @@ fn footer(app: &App, acc: Color) -> Line<'static> {
             Mode::Bookmarks => &[("↑↓", "Move"), ("Enter", "Jump / cd"), ("d / x", "Delete pin"), ("←", "Back"), ("Esc", "Close")],
             Mode::History => &[("type", "Search"), ("↑↓", "Move"), ("Enter", "Run"), ("Tab", "Edit first"), ("←", "Back"), ("Esc", "Close")],
             Mode::Find => &[("type", "Search"), ("↑↓", "Move"), ("Enter", "cd / open"), ("Tab", "Actions"), ("←", "Back"), ("Esc", "Close")],
+            Mode::GitFiles => &[("↑↓", "Move"), ("Space", "Stage/Unstage"), ("Enter", "Actions"), ("/", "Search"), ("←", "Back"), ("Esc", "Close")],
             Mode::Theme => &[("↑↓", "Move"), ("Enter", "Apply & Save"), ("←", "Back"), ("Esc", "Close")],
             _ => &[("↑↓", "Move"), ("Enter", "Select"), ("Tab", "Edit first"), ("←", "Back"), ("/", "Search"), ("Esc", "Close")],
         }
