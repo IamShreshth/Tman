@@ -28,26 +28,30 @@
   <div class="bg-glow" aria-hidden="true"></div>
   <div class="bg-grid" aria-hidden="true"></div>
 
-  <!-- Header / Navigation -->
+  <!-- Header / Floating Pill Navigation -->
   <header class="site-header">
-    <div class="container header-inner">
+    <div class="header-pill">
       <a href="#" class="brand">
-        <span class="brand-terminal">&gt;</span>
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+        </span>
         <span class="brand-name">tman</span>
         <span class="brand-badge">HUD</span>
       </a>
 
       <nav class="nav-links">
-        <a href="#features">Features</a>
         <a href="#preview">Interface</a>
+        <a href="#features">Features</a>
         <a href="#keybindings">Keybindings</a>
         <a href="#install">Install</a>
-        <a href="linux.md">Linux Guide</a>
       </nav>
 
       <div class="header-actions">
-        <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" id="github-header-btn">
-          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+        <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-pill" id="github-header-btn">
+          <svg class="icon" viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
           </svg>
           <span>GitHub</span>
@@ -88,10 +92,35 @@
       </div>
 
       <div class="hero-tags">
-        <span class="tag"><span class="tag-icon">⚡</span> Zero-Daemon Overhead</span>
-        <span class="tag"><span class="tag-icon">🦀</span> Pure Standalone Rust</span>
-        <span class="tag"><span class="tag-icon">🐧</span> Linux & macOS</span>
-        <span class="tag"><span class="tag-icon">🐚</span> Zsh & Bash</span>
+        <span class="tag">
+          <svg class="tag-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+          </svg>
+          <span>Zero-Daemon Overhead</span>
+        </span>
+        <span class="tag">
+          <svg class="tag-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5"></path>
+            <path d="M2 12l10 5 10-5"></path>
+          </svg>
+          <span>Pure Standalone Rust</span>
+        </span>
+        <span class="tag">
+          <svg class="tag-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>Linux &amp; macOS</span>
+        </span>
+        <span class="tag">
+          <svg class="tag-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          <span>Zsh, Bash &amp; Fish</span>
+        </span>
       </div>
     </div>
   </section>
@@ -110,7 +139,7 @@
       </div>
 
       <!-- View 1: Interactive Simulator -->
-      <div class="terminal-window" id="interactive-view">
+      <div class="terminal-window" id="interactive-view" tabindex="0" aria-label="Interactive tman HUD simulator">
         <div class="terminal-topbar">
           <div class="window-controls">
             <span class="control-dot close"></span>
@@ -118,24 +147,27 @@
             <span class="control-dot expand"></span>
           </div>
           <div class="window-title">tman — HUD Overlay (~/projects/app)</div>
-          <div class="window-hint">Tip: Click actions or use keyboard</div>
+          <div class="window-hint">Click rows or press ↑/↓ (j/k) inside HUD</div>
         </div>
 
         <div class="hud-frame">
           <!-- Top Breadcrumb -->
           <div class="hud-header">
-            <span class="hud-app-name">tman</span>
+            <span class="hud-box-title">tman</span>
             <span class="hud-breadcrumb">~/projects/app</span>
+            <span class="hud-git-branch">⎇ main</span>
+            <span class="hud-git-sync">↑1 ↓0</span>
+            <span class="hud-git-stat">+2 ~1 ?0</span>
           </div>
 
           <!-- Main HUD Content: Left Actions + Right Mission Control -->
           <div class="hud-body">
             <!-- Left Panel -->
             <div class="hud-panel hud-left">
-              <div class="panel-header">ACTIONS</div>
+              <span class="hud-box-title">ACTIONS</span>
               <ul class="hud-list" id="sim-list">
                 <li class="hud-item active" data-action="navigate">
-                  <span class="item-pointer">›</span>
+                  <span class="item-pointer">❯</span>
                   <span class="item-icon">▸</span>
                   <span class="item-title">Navigate</span>
                   <span class="item-desc">Browse and jump between directories</span>
@@ -144,7 +176,7 @@
                   <span class="item-pointer"> </span>
                   <span class="item-icon">*</span>
                   <span class="item-title">Bookmarks</span>
-                  <span class="item-desc">Quick jump to pinned directories</span>
+                  <span class="item-desc">Quick jump to pinned &amp; recent directories</span>
                 </li>
                 <li class="hud-item" data-action="history">
                   <span class="item-pointer"> </span>
@@ -156,19 +188,25 @@
                   <span class="item-pointer"> </span>
                   <span class="item-icon">⌕</span>
                   <span class="item-title">Search</span>
-                  <span class="item-desc">Find files and folders below here</span>
+                  <span class="item-desc">Find files and folders (.gitignore-aware)</span>
                 </li>
                 <li class="hud-item" data-action="git">
                   <span class="item-pointer"> </span>
                   <span class="item-icon">⎇</span>
                   <span class="item-title">Git</span>
-                  <span class="item-desc">Repository state and operations</span>
+                  <span class="item-desc">Stage files, switch branches &amp; pop stashes</span>
                 </li>
                 <li class="hud-item" data-action="run">
                   <span class="item-pointer"> </span>
                   <span class="item-icon">▶</span>
                   <span class="item-title">Run</span>
                   <span class="item-desc">Commands discovered in this project</span>
+                </li>
+                <li class="hud-item" data-action="ports">
+                  <span class="item-pointer"> </span>
+                  <span class="item-icon">◈</span>
+                  <span class="item-title">Ports</span>
+                  <span class="item-desc">Inspect listening ports &amp; kill processes</span>
                 </li>
                 <li class="hud-item" data-action="theme">
                   <span class="item-pointer"> </span>
@@ -181,32 +219,32 @@
 
             <!-- Right Panel: Mission Control -->
             <div class="hud-panel hud-right">
-              <div class="panel-header">MISSION CONTROL</div>
+              <span class="hud-box-title hud-box-title-dim" id="right-panel-title">MISSION CONTROL</span>
 
               <div class="sub-block">
-                <div class="sub-block-title">SYSTEM VITALS</div>
+                <div class="sub-block-title">━━━ SYSTEM VITALS ━━━━━━━━━━━━━━━━━━━━</div>
                 <div class="vitals-row"><span class="vital-label">Power:</span> <span class="vital-val text-green" id="vital-power">84% (discharging)</span></div>
                 <div class="vitals-row"><span class="vital-label">Uptime:</span> <span class="vital-val" id="vital-uptime">10d 13h 58m</span></div>
-                <div class="vitals-row"><span class="vital-label">Load:</span> <span class="vital-val" id="vital-load">1.42 1.25 1.10</span></div>
-                <div class="vitals-row"><span class="vital-label">RAM:</span> <span class="vital-val" id="vital-ram">16.0 GB</span></div>
+                <div class="vitals-row"><span class="vital-label">Load:</span> <span class="vital-val" id="vital-load">1.42  1.25  1.10</span></div>
+                <div class="vitals-row"><span class="vital-label">RAM:</span> <span class="vital-val" id="vital-ram">7.2 GB / 16.0 GB (45%)</span></div>
                 <div class="vitals-row"><span class="vital-label">Disk:</span> <span class="vital-val" id="vital-disk">245.8 GB free (68% used)</span></div>
               </div>
 
               <div class="sub-block">
-                <div class="sub-block-title">CONTEXT</div>
+                <div class="sub-block-title">━━━ CONTEXT ━━━━━━━━━━━━━━━━━━━━━━━━━━</div>
                 <div class="vitals-row"><span class="vital-label">Dir:</span> <span class="vital-val">~/projects/app</span></div>
-                <div class="vitals-row"><span class="vital-label">Git:</span> <span class="vital-val text-cyan">⎇ main +2 ~1 ?0</span></div>
-                <div class="vitals-row"><span class="vital-label">Project:</span> <span class="vital-val text-yellow">Rust, Docker</span></div>
+                <div class="vitals-row"><span class="vital-label">Git:</span> <span class="vital-val text-cyan">⎇ main  +2 ~1 ?0</span></div>
+                <div class="vitals-row"><span class="vital-label">Project:</span> <span class="vital-val text-yellow">Rust, Docker, Env</span></div>
               </div>
 
               <div class="sub-block flex-1">
-                <div class="sub-block-title" id="dyn-block-title">DIRECTORY CONTENTS</div>
+                <div class="sub-block-title" id="dyn-block-title">━━━ DIRECTORY CONTENTS ━━━━━━━━━━━━━━━</div>
                 <div class="dyn-content" id="dyn-content">
                   <div class="dyn-item">▸ src/</div>
                   <div class="dyn-item">▸ tests/</div>
-                  <div class="dyn-item">· Cargo.toml</div>
-                  <div class="dyn-item">· Dockerfile</div>
-                  <div class="dyn-item">· README.md</div>
+                  <div class="dyn-item">  Cargo.toml</div>
+                  <div class="dyn-item">  Dockerfile</div>
+                  <div class="dyn-item">  README.md</div>
                 </div>
               </div>
             </div>
@@ -214,11 +252,13 @@
 
           <!-- Bottom Footer -->
           <div class="hud-footer">
-            <span class="footer-key">↑↓</span> <span class="footer-desc">Move</span>
-            <span class="footer-key">Enter</span> <span class="footer-desc">Open</span>
-            <span class="footer-key">b</span> <span class="footer-desc">Bookmark dir</span>
-            <span class="footer-key">Tab</span> <span class="footer-desc">Actions</span>
-            <span class="footer-key">Esc</span> <span class="footer-desc">Close</span>
+            <span><span class="footer-key">↑↓</span> <span class="footer-desc">Move</span></span>
+            <span><span class="footer-key">Enter</span> <span class="footer-desc">Open</span></span>
+            <span><span class="footer-key">Q</span> <span class="footer-desc">cd &amp; quit</span></span>
+            <span><span class="footer-key">Space</span> <span class="footer-desc">Stage</span></span>
+            <span><span class="footer-key">b</span> <span class="footer-desc">Bookmark dir</span></span>
+            <span><span class="footer-key">Tab</span> <span class="footer-desc">Actions</span></span>
+            <span><span class="footer-key">Esc</span> <span class="footer-desc">Close</span></span>
           </div>
         </div>
       </div>
@@ -365,6 +405,16 @@
               <td>Delete highlighted bookmark</td>
             </tr>
             <tr>
+              <td><kbd>Space</kbd></td>
+              <td>Git Changed Files</td>
+              <td>Stage / unstage highlighted file in-place</td>
+            </tr>
+            <tr>
+              <td><kbd>Q</kbd></td>
+              <td>File Browser</td>
+              <td>Quit HUD and <code>cd</code> shell into the browsed directory</td>
+            </tr>
+            <tr>
               <td><kbd>Tab</kbd></td>
               <td>Browser / Runners</td>
               <td>Open action menu (Open with app, Open in file manager, Copy path)</td>
@@ -372,7 +422,7 @@
             <tr>
               <td><kbd>/</kbd></td>
               <td>Lists</td>
-              <td>Filter items with fuzzy search</td>
+              <td>Filter items with multi-word fuzzy search</td>
             </tr>
             <tr>
               <td><kbd>.</kbd></td>
@@ -405,10 +455,30 @@
 
       <div class="install-tabs-card">
         <div class="install-tabs-nav" role="tablist">
-          <button class="inst-tab active" data-tab="curl" role="tab">Single-Step Script</button>
-          <button class="inst-tab" data-tab="cargo" role="tab">Cargo (Rust)</button>
-          <button class="inst-tab" data-tab="source" role="tab">Build from Source</button>
-          <button class="inst-tab" data-tab="docker" role="tab">Docker Sandbox</button>
+          <button class="inst-tab active" data-tab="curl" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            <span>Single-Step</span>
+          </button>
+          <button class="inst-tab" data-tab="macos" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+            <span>macOS</span>
+          </button>
+          <button class="inst-tab" data-tab="distros" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            <span>Linux Distros</span>
+          </button>
+          <button class="inst-tab" data-tab="cargo" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            <span>Cargo (Rust)</span>
+          </button>
+          <button class="inst-tab" data-tab="source" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            <span>From Source</span>
+          </button>
+          <button class="inst-tab" data-tab="docker" role="tab">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12.5c-.5-.8-1.6-1.1-2.5-.9-.2-1.1-.9-2-1.9-2.5l-.4-.2-.2.4c-.4.8-.5 1.8-.2 2.6-.5.3-1.2.4-1.8.4H2.5c-.3 2.5.5 5 2.2 6.6C6.4 20.5 8.9 21 12 21c5.2 0 9-2.4 10.6-6.7.7.1 1.5 0 2-.5l.2-.2-.3-.3c-.6-.6-1.5-.9-2.5-.8z"></path></svg>
+            <span>Docker</span>
+          </button>
         </div>
 
         <div class="install-tab-content active" id="tab-curl">
@@ -419,10 +489,47 @@
           </div>
           <div class="tab-note mt-2">Then reload your active shell:</div>
           <div class="code-block">
-            <pre><code>source ~/.zshrc   # If using Zsh
-# OR
-source ~/.bashrc  # If using Bash</code></pre>
-            <button class="code-copy-btn" data-clipboard="source ~/.zshrc # OR source ~/.bashrc" aria-label="Copy command">Copy</button>
+            <pre><code>source ~/.zshrc                        # Zsh
+source ~/.bashrc                       # Bash
+tman init fish | source                # Fish</code></pre>
+            <button class="code-copy-btn" data-clipboard="source ~/.zshrc" aria-label="Copy command">Copy</button>
+          </div>
+        </div>
+
+        <div class="install-tab-content" id="tab-macos">
+          <p class="tab-note"><strong>macOS (Apple Silicon M1/M2/M3/M4 &amp; Intel)</strong> — One-line installer (auto-runs <code>codesign</code> and configures <code>~/.zshrc</code>):</p>
+          <div class="code-block">
+            <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+source ~/.zshrc</code></pre>
+            <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash && source ~/.zshrc" aria-label="Copy macOS one-liner">Copy</button>
+          </div>
+          <p class="tab-note mt-2"><strong>Homebrew + Cargo</strong> (Build from source on macOS):</p>
+          <div class="code-block">
+            <pre><code>brew install rust
+cargo install --git https://github.com/IamShreshth/Tman.git --locked
+echo 'eval "$(tman init zsh)"' >> ~/.zshrc && source ~/.zshrc</code></pre>
+            <button class="code-copy-btn" data-clipboard="brew install rust && cargo install --git https://github.com/IamShreshth/Tman.git --locked && echo 'eval &quot;$(tman init zsh)&quot;' >> ~/.zshrc && source ~/.zshrc" aria-label="Copy macOS Homebrew command">Copy</button>
+          </div>
+        </div>
+
+        <div class="install-tab-content" id="tab-distros">
+          <p class="tab-note"><strong>Arch Linux</strong> (Manjaro, EndeavourOS, CachyOS):</p>
+          <div class="code-block">
+            <pre><code>sudo pacman -S --needed --noconfirm base-devel git rust wl-clipboard xclip xdg-utils
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+            <button class="code-copy-btn" data-clipboard="sudo pacman -S --needed --noconfirm base-devel git rust wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Arch command">Copy</button>
+          </div>
+          <p class="tab-note mt-2"><strong>Fedora</strong> (RHEL, CentOS Stream, Nobara):</p>
+          <div class="code-block">
+            <pre><code>sudo dnf install -y gcc git cargo rust wl-clipboard xclip xdg-utils
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+            <button class="code-copy-btn" data-clipboard="sudo dnf install -y gcc git cargo rust wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Fedora command">Copy</button>
+          </div>
+          <p class="tab-note mt-2"><strong>Ubuntu / Debian</strong> (Linux Mint, Pop!_OS):</p>
+          <div class="code-block">
+            <pre><code>sudo apt update && sudo apt install -y build-essential curl git cargo rustc wl-clipboard xclip xdg-utils
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+            <button class="code-copy-btn" data-clipboard="sudo apt update && sudo apt install -y build-essential curl git cargo rustc wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Ubuntu command">Copy</button>
           </div>
         </div>
 
@@ -434,11 +541,9 @@ source ~/.bashrc  # If using Bash</code></pre>
           </div>
           <div class="tab-note mt-2">Append the hook to your shell configuration:</div>
           <div class="code-block">
-            <pre><code># For Zsh:
-echo 'eval "$(tman init zsh)"' >> ~/.zshrc
-
-# For Bash:
-echo 'eval "$(tman init bash)"' >> ~/.bashrc</code></pre>
+            <pre><code>echo 'eval "$(tman init zsh)"' >> ~/.zshrc                        # Zsh
+echo 'eval "$(tman init bash)"' >> ~/.bashrc                      # Bash
+echo 'tman init fish | source' >> ~/.config/fish/config.fish      # Fish</code></pre>
             <button class="code-copy-btn" data-clipboard="echo 'eval &quot;$(tman init zsh)&quot;' >> ~/.zshrc" aria-label="Copy command">Copy</button>
           </div>
         </div>
@@ -478,7 +583,6 @@ docker run --rm -it -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo run
       </div>
       <div class="footer-right">
         <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
-        <a href="linux.md">Linux Guide</a>
         <a href="requirements.txt">Requirements</a>
       </div>
     </div>
