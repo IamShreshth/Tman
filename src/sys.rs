@@ -160,36 +160,62 @@ pub fn battery() -> Option<String> {
 #[cfg(target_os = "macos")]
 pub fn memory() -> Option<String> {
     use std::ffi::CString;
-    let mut memsize: u64 = 0;
+    let mut total: u64 = 0;
     let mut len = std::mem::size_of::<u64>();
     let name = CString::new("hw.memsize").unwrap();
-    let res = unsafe { libc::sysctlbyname(name.as_ptr(), &mut memsize as *mut _ as *mut libc::c_void, &mut len, std::ptr::null_mut(), 0) };
-    if res == 0 && memsize > 0 {
-        Some(format_bytes(memsize))
-    } else {
-        None
+    if unsafe { libc::sysctlbyname(name.as_ptr(), &mut total as *mut _ as *mut libc::c_void, &mut len, std::ptr::null_mut(), 0) } != 0 || total == 0 {
+        return None;
     }
+    if let Ok(out) = std::process::Command::new("vm_stat").output() {
+        let text = String::from_utf8_lossy(&out.stdout);
+        let page_size: u64 = text.lines().next()
+            .and_then(|l| l.split("page size of ").nth(1))
+            .and_then(|s| s.split_whitespace().next())
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(4096);
+        let mut used_pages = 0u64;
+        for line in text.lines() {
+            if line.starts_with("Pages active:") || line.starts_with("Pages wired down:") || line.starts_with("Pages occupied by compressor:") {
+                if let Some(v) = line.split(':').nth(1).and_then(|s| s.trim().trim_end_matches('.').parse::<u64>().ok()) {
+                    used_pages += v;
+                }
+            }
+        }
+        if used_pages > 0 {
+            let used = (used_pages * page_size).min(total);
+            return Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0));
+        }
+    }
+    Some(format_bytes(total))
 }
 
 #[cfg(target_os = "linux")]
 pub fn memory() -> Option<String> {
     if let Ok(s) = std::fs::read_to_string("/proc/meminfo") {
+        let (mut total_kb, mut avail_kb) = (None, None);
         for line in s.lines() {
             if line.starts_with("MemTotal:") {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if let Some(kb_str) = parts.get(1) {
-                    if let Ok(kb) = kb_str.parse::<u64>() {
-                        return Some(format_bytes(kb * 1024));
-                    }
-                }
+                total_kb = line.split_whitespace().nth(1).and_then(|v| v.parse::<u64>().ok());
+            } else if line.starts_with("MemAvailable:") {
+                avail_kb = line.split_whitespace().nth(1).and_then(|v| v.parse::<u64>().ok());
             }
+        }
+        if let Some(t) = total_kb {
+            let total = t * 1024;
+            if let Some(a) = avail_kb {
+                let used = total.saturating_sub(a * 1024);
+                return Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0));
+            }
+            return Some(format_bytes(total));
         }
     }
     let mut info: libc::sysinfo = unsafe { std::mem::zeroed() };
     if unsafe { libc::sysinfo(&mut info) } == 0 {
-        let total = (info.totalram as u64) * (info.mem_unit as u64);
+        let unit = info.mem_unit as u64;
+        let total = (info.totalram as u64) * unit;
         if total > 0 {
-            return Some(format_bytes(total));
+            let used = total.saturating_sub((info.freeram as u64) * unit);
+            return Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0));
         }
     }
     None
