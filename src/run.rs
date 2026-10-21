@@ -29,6 +29,7 @@ fn scoped(cwd: &Path, target_dir: &Path, cmd: impl Into<String>) -> String {
 pub fn kinds(cwd: &Path, git_root: Option<&Path>) -> Vec<&'static str> {
     let mut k = vec![];
     for (f, n) in [
+        (".tman.toml", "tman"),
         ("Cargo.toml", "Rust"),
         ("package.json", "Node"),
         ("Makefile", "Make"),
@@ -43,6 +44,7 @@ pub fn kinds(cwd: &Path, git_root: Option<&Path>) -> Vec<&'static str> {
         ("docker-compose.yml", "Docker Compose"),
         ("compose.yaml", "Docker Compose"),
         ("Dockerfile", "Docker"),
+        (".env", "Env"),
         (".git", "Git"),
     ] {
         if resolve(cwd, git_root, f).is_some() && !k.contains(&n) {
@@ -55,6 +57,21 @@ pub fn kinds(cwd: &Path, git_root: Option<&Path>) -> Vec<&'static str> {
 /// Discovers project-specific commands instead of hardcoding a list of the world.
 pub fn discover(cwd: &Path, git_root: Option<&Path>) -> Vec<RunItem> {
     let mut v = vec![];
+
+    // Custom project recipes (.tman.toml)
+    if let Some(dir) = resolve(cwd, git_root, ".tman.toml") {
+        if let Ok(s) = fs::read_to_string(dir.join(".tman.toml")) {
+            if let Ok(val) = toml::from_str::<toml::Value>(&s) {
+                if let Some(scripts) = val.get("scripts").and_then(|t| t.as_table()) {
+                    for (name, cmd_val) in scripts {
+                        if let Some(c) = cmd_val.as_str() {
+                            v.push(RunItem { cmd: scoped(cwd, dir, c), source: format!(".tman.toml [{name}]") });
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // Node.js (package.json)
     if let Some(dir) = resolve(cwd, git_root, "package.json") {
@@ -174,6 +191,20 @@ pub fn discover(cwd: &Path, git_root: Option<&Path>) -> Vec<RunItem> {
                 }
                 break;
             }
+        }
+    }
+
+    // .env inspector (masked preview)
+    if let Some(dir) = resolve(cwd, git_root, ".env") {
+        if let Ok(s) = fs::read_to_string(dir.join(".env")) {
+            let keys: Vec<String> = s.lines()
+                .map(str::trim)
+                .filter(|l| !l.is_empty() && !l.starts_with('#'))
+                .filter_map(|l| l.split_once('=').map(|(k, _)| format!("{} = ***", k.trim())))
+                .take(25)
+                .collect();
+            let summary = if keys.is_empty() { ".env (empty)".into() } else { format!(".env ({} keys)\n{}", keys.len(), keys.join("\n")) };
+            v.push(RunItem { cmd: scoped(cwd, dir, "${VISUAL:-${EDITOR:-vi}} .env"), source: summary });
         }
     }
 

@@ -130,6 +130,23 @@ impl Config {
         let updated = format_bookmarks_toml(&current, &self.bookmarks);
         let _ = std::fs::write(&p, updated);
     }
+
+    pub fn recent_dirs(&self) -> Vec<String> {
+        std::process::Command::new("zoxide")
+            .args(["query", "-l"])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .lines()
+                    .map(|l| l.trim().to_string())
+                    .filter(|p| !p.is_empty() && !self.is_bookmarked(p) && std::path::Path::new(p).is_dir())
+                    .take(15)
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
 }
 
 pub fn format_bookmarks_toml(current: &str, bookmarks: &[String]) -> String {

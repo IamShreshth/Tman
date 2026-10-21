@@ -101,6 +101,38 @@ pub fn diff_preview(cwd: &Path, path: &Path, max: usize) -> Vec<String> {
         .unwrap_or_default()
 }
 
+/// (branch_name, last_commit_subject)
+pub fn branches(cwd: &Path) -> Vec<(String, String)> {
+    git(cwd, &["for-each-ref", "--sort=-committerdate", "refs/heads", "refs/remotes", "--format=%(refname:short)|%(subject)"])
+        .unwrap_or_default()
+        .lines()
+        .filter(|l| !l.ends_with("/HEAD") && !l.starts_with("origin/HEAD"))
+        .take(50)
+        .filter_map(|l| l.split_once('|').map(|(b, s)| (b.trim().to_string(), s.trim().to_string())))
+        .collect()
+}
+
+pub fn branch_log(cwd: &Path, branch: &str, max: usize) -> Vec<String> {
+    git(cwd, &["log", "--oneline", "-n", &max.to_string(), branch])
+        .map(|s| s.lines().map(String::from).collect())
+        .unwrap_or_default()
+}
+
+/// (stash_ref, description)
+pub fn stashes(cwd: &Path) -> Vec<(String, String)> {
+    git(cwd, &["stash", "list"])
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|l| l.split_once(": ").map(|(r, d)| (r.trim().to_string(), d.trim().to_string())))
+        .collect()
+}
+
+pub fn stash_preview(cwd: &Path, stash_ref: &str, max: usize) -> Vec<String> {
+    git(cwd, &["stash", "show", "-p", stash_ref])
+        .map(|s| s.lines().take(max).map(String::from).collect())
+        .unwrap_or_default()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

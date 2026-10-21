@@ -250,3 +250,54 @@ fn format_duration(secs: u64) -> String {
         format!("{mins}m")
     }
 }
+
+pub struct PortInfo {
+    pub port: String,
+    pub pid: String,
+    pub proc_name: String,
+}
+
+pub fn listening_ports() -> Vec<PortInfo> {
+    use std::collections::HashSet;
+    use std::process::Command;
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+
+    if let Ok(o) = Command::new("lsof").args(["-iTCP", "-sTCP:LISTEN", "-P", "-n"]).output() {
+        if o.status.success() {
+            for line in String::from_utf8_lossy(&o.stdout).lines().skip(1) {
+                let cols: Vec<&str> = line.split_whitespace().collect();
+                if cols.len() >= 9 {
+                    let proc_name = cols[0].to_string();
+                    let pid = cols[1].to_string();
+                    let addr = cols[cols.len() - 2];
+                    if let Some(port) = addr.rsplit(':').next() {
+                        if seen.insert((port.to_string(), pid.clone())) {
+                            out.push(PortInfo { port: port.to_string(), pid, proc_name });
+                        }
+                    }
+                }
+            }
+            return out;
+        }
+    }
+
+    if let Ok(o) = Command::new("ss").args(["-lptnH"]).output() {
+        if o.status.success() {
+            for line in String::from_utf8_lossy(&o.stdout).lines() {
+                let cols: Vec<&str> = line.split_whitespace().collect();
+                if cols.len() >= 5 {
+                    let local = cols[3];
+                    let port = local.rsplit(':').next().unwrap_or("").to_string();
+                    let proc_col = cols.get(5).copied().unwrap_or("");
+                    let proc_name = proc_col.split('"').nth(1).unwrap_or("process").to_string();
+                    let pid = proc_col.split("pid=").nth(1).and_then(|s| s.split(',').next()).unwrap_or("").to_string();
+                    if !port.is_empty() && !pid.is_empty() && seen.insert((port.clone(), pid.clone())) {
+                        out.push(PortInfo { port, pid, proc_name });
+                    }
+                }
+            }
+        }
+    }
+    out
+}
