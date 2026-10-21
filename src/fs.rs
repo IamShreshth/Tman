@@ -1,6 +1,7 @@
-use std::collections::VecDeque;
+use std::collections::{HashSet, VecDeque};
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 #[derive(Clone)]
 pub struct Entry {
@@ -36,6 +37,24 @@ pub fn list_dir(dir: &Path, hidden: bool) -> Vec<Entry> {
 /// Breadth-first recursive listing (shallow results first), bounded.
 pub fn walk(root: &Path, hidden: bool, max_depth: usize, cap: usize) -> Vec<Entry> {
     const SKIP: [&str; 5] = ["node_modules", "target", "__pycache__", ".venv", ".git"];
+    // shortcut: uses git for .gitignore outside hidden mode, switch to the `ignore` crate if non-git .ignore support is needed
+    let ignored: HashSet<String> = if !hidden {
+        Command::new("git")
+            .args(["ls-files", "-oi", "--exclude-standard", "--directory"])
+            .current_dir(root)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .lines()
+                    .map(|l| l.trim_end_matches('/').to_string())
+                    .collect()
+            })
+            .unwrap_or_default()
+    } else {
+        HashSet::new()
+    };
     let mut out = vec![];
     let mut q = VecDeque::from([(root.to_path_buf(), 0usize)]);
     while let Some((dir, depth)) = q.pop_front() {
@@ -44,6 +63,9 @@ pub fn walk(root: &Path, hidden: bool, max_depth: usize, cap: usize) -> Vec<Entr
                 return out;
             }
             let rel = e.path.strip_prefix(root).unwrap_or(&e.path).to_string_lossy().into_owned();
+            if !hidden && (SKIP.contains(&e.name.as_str()) || ignored.contains(&rel)) {
+                continue;
+            }
             let is_link = fs::symlink_metadata(&e.path).map(|m| m.file_type().is_symlink()).unwrap_or(true);
             if e.is_dir && depth < max_depth && !is_link && !SKIP.contains(&e.name.as_str()) {
                 q.push_back((e.path.clone(), depth + 1));

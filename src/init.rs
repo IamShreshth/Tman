@@ -20,6 +20,16 @@ fn bash_key(k: &str) -> String {
     if let Some(c) = k.strip_prefix("alt-") { return format!("\\e{c}"); }
     k
 }
+fn fish_key(k: &str) -> String {
+    let k = k.to_lowercase();
+    if k == "ctrl-space" || k == "ctrl-shift-space" { return "-k nul".into(); }
+    if let Some(c) = k.strip_prefix("ctrl-shift-").or_else(|| k.strip_prefix("shift-ctrl-")) {
+        return format!("\\c{}", c.to_lowercase());
+    }
+    if let Some(c) = k.strip_prefix("ctrl-") { return format!("\\c{c}"); }
+    if let Some(c) = k.strip_prefix("alt-") { return format!("\\e{c}"); }
+    k
+}
 
 /// Thin integration: the binary only ever prints "<x|i>:<command>"; the shell decides what to do with it.
 pub fn script(shell: &str, cfg: &Config) -> Option<String> {
@@ -79,7 +89,7 @@ bindkey '{}' tman-widget{}
             let primary = bash_key(key);
             let extra = if key.to_lowercase().contains("shift") && key.to_lowercase().contains("ctrl") {
                 if key.to_lowercase().ends_with('t') {
-                    "\nbind -x '\"\\C-@\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[84;6u\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[116;6u\": __tman_widget' 2>/dev/null || true\nbind -x '\"\\e[20;6~\": __tman_widget' 2>/dev/null || true"
+                    "\nbind '\"\\C-@\": \"\\C-x\\C-t\\C-x\\C-e\"' 2>/dev/null || true\nbind '\"\\e[84;6u\": \"\\C-x\\C-t\\C-x\\C-e\"' 2>/dev/null || true\nbind '\"\\e[116;6u\": \"\\C-x\\C-t\\C-x\\C-e\"' 2>/dev/null || true\nbind '\"\\e[20;6~\": \"\\C-x\\C-t\\C-x\\C-e\"' 2>/dev/null || true"
                 } else {
                     ""
                 }
@@ -102,21 +112,84 @@ tman() {{
     command tman "$@"
   fi
 }}
-# bash cannot auto-accept a line from a `bind -x` handler, so results are always inserted for you to press Enter.
 __tman_widget() {{
-  local hist out
+  local hist out mode
   hist=$(mktemp "${{TMPDIR:-/tmp}}/tman.XXXXXX") || return
   history -a; HISTTIMEFORMAT= history | sed 's/^ *[0-9]* *//' > "$hist"
   out=$(TMAN_HISTORY_FILE="$hist" command tman ui)
   rm -f "$hist"
   if [[ -n $out ]]; then
+    mode=${{out%%:*}}
     READLINE_LINE=${{out#*:}}
     READLINE_POINT=${{#READLINE_LINE}}
+    if [[ $mode == x ]]; then
+      bind '"\C-x\C-e": accept-line'
+    else
+      bind '"\C-x\C-e": ""'
+    fi
+  else
+    bind '"\C-x\C-e": ""'
   fi
 }}
-bind -x '"{primary}": __tman_widget'{extra}
+bind -x '"\C-x\C-t": __tman_widget'
+bind '"\C-x\C-e": ""'
+bind '"{primary}": "\C-x\C-t\C-x\C-e"'{extra}
+"#))
+        },
+        "fish" => {
+            let primary = fish_key(key);
+            Some(format!(r#"# tman fish integration: tman init fish | source
+function tman
+  if test (count $argv) -eq 0; or test "$argv[1]" = "ui"
+    set -l hist (mktemp (set -q TMPDIR; and echo $TMPDIR; or echo /tmp)/tman.XXXXXX); or return
+    builtin history > "$hist" 2>/dev/null
+    set -l out (TMAN_HISTORY_FILE="$hist" command tman ui)
+    rm -f "$hist"
+    if test -n "$out"
+      set -l mode (string split -m 1 : -- "$out")[1]
+      set -l cmd (string split -m 1 : -- "$out")[2]
+      if test "$mode" = "x"
+        eval "$cmd"
+      else
+        commandline -r -- "$cmd"
+      end
+    end
+  else
+    command tman $argv
+  end
+end
+function __tman_widget
+  set -l hist (mktemp (set -q TMPDIR; and echo $TMPDIR; or echo /tmp)/tman.XXXXXX); or return
+  builtin history > "$hist" 2>/dev/null
+  set -l out (TMAN_HISTORY_FILE="$hist" command tman ui)
+  rm -f "$hist"
+  if test -n "$out"
+    set -l mode (string split -m 1 : -- "$out")[1]
+    set -l cmd (string split -m 1 : -- "$out")[2]
+    commandline -r -- "$cmd"
+    if test "$mode" = "x"
+      commandline -f execute
+    end
+  end
+  commandline -f repaint
+end
+bind {primary} __tman_widget
+bind -k nul __tman_widget 2>/dev/null; or true
 "#))
         },
         _ => None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn generates_all_shells() {
+        let cfg = Config::default();
+        assert!(script("zsh", &cfg).unwrap().contains("zle accept-line"));
+        assert!(script("bash", &cfg).unwrap().contains("accept-line"));
+        assert!(script("fish", &cfg).unwrap().contains("commandline -f execute"));
+        assert!(script("csh", &cfg).is_none());
     }
 }
