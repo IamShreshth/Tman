@@ -39,6 +39,35 @@ Press `Ctrl+Shift+T` (or `Ctrl+Space`) anywhere in your shell, or run `tman`.
 
 ---
 
+## macOS Installation (Apple Silicon & Intel)
+
+### Option 1: Single-Step Installer (Recommended)
+Automatically detects Apple Silicon (`arm64`) or Intel (`x86_64`), installs `tman`, signs the binary (`codesign`) so Gatekeeper never prompts, and configures `~/.zshrc`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+source ~/.zshrc
+```
+
+### Option 2: Homebrew + Cargo (Build from Source)
+```bash
+# 1. Ensure Xcode Command Line Tools & Rust are installed
+xcode-select --install 2>/dev/null || true
+brew install rust   # OR: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 2. Install tman via Cargo
+cargo install --git https://github.com/IamShreshth/Tman.git --locked
+
+# 3. Activate in your shell (Zsh is default on macOS):
+echo 'eval "$(tman init zsh)"' >> ~/.zshrc && source ~/.zshrc
+# Bash: echo 'eval "$(tman init bash)"' >> ~/.bash_profile && source ~/.bash_profile
+# Fish: mkdir -p ~/.config/fish && echo 'tman init fish | source' >> ~/.config/fish/config.fish
+```
+
+> **Note on macOS integration:** `pbcopy` (clipboard) and `open` (Finder / default app opener) work out of the box on macOS with zero extra packages. For `Ctrl+Shift+T` in iTerm2, Warp, Kitty, Alacritty, or WezTerm, you can also use `Ctrl+Space` at any time.
+
+---
+
 ## Linux Installation
 
 ### Universal One-Liner (All Distros)
