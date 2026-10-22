@@ -7,7 +7,7 @@
 [![Rust](https://img.shields.io/badge/rust-2021_edition-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey.svg)](https://github.com/IamShreshth/Tman)
-[![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash-green.svg)](https://github.com/IamShreshth/Tman)
+[![Shell](https://img.shields.io/badge/shell-zsh%20%7C%20bash%20%7C%20fish-green.svg)](https://github.com/IamShreshth/Tman)
 [![Dependencies](https://img.shields.io/badge/dependencies-zero_runtime-brightgreen.svg)](docs/requirements.txt)
 
 <br/>
@@ -39,59 +39,121 @@ Press `Ctrl+Shift+T` (or `Ctrl+Space`) anywhere in your shell, or run `tman`.
 
 ---
 
+## macOS Installation (Apple Silicon & Intel)
+
+### Option 1: Single-Step Installer (Recommended)
+Automatically detects Apple Silicon (`arm64`) or Intel (`x86_64`), installs `tman`, signs the binary (`codesign`) so Gatekeeper never prompts, and configures `~/.zshrc`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+source ~/.zshrc
+```
+
+### Option 2: Homebrew + Cargo (Build from Source)
+```bash
+# 1. Ensure Xcode Command Line Tools & Rust are installed
+xcode-select --install 2>/dev/null || true
+brew install rust   # OR: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# 2. Install tman via Cargo
+cargo install --git https://github.com/IamShreshth/Tman.git --locked
+
+# 3. Activate in your shell (Zsh is default on macOS):
+echo 'eval "$(tman init zsh)"' >> ~/.zshrc && source ~/.zshrc
+# Bash: echo 'eval "$(tman init bash)"' >> ~/.bash_profile && source ~/.bash_profile
+# Fish: mkdir -p ~/.config/fish && echo 'tman init fish | source' >> ~/.config/fish/config.fish
+```
+
+> **Note on macOS integration:** `pbcopy` (clipboard) and `open` (Finder / default app opener) work out of the box on macOS with zero extra packages. For `Ctrl+Shift+T` in iTerm2, Warp, Kitty, Alacritty, or WezTerm, you can also use `Ctrl+Space` at any time.
+
+---
+
 ## Linux Installation
 
-### Universal (All Distros)
+### Universal One-Liner (All Distros)
+
+Automatically detects your architecture (`x86_64` / `aarch64`), libc (`glibc` / `musl`), downloads the pre-built binary (or builds via Cargo if needed), and configures your shell:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
 ```
 
-### Fedora
+---
+
+### 1. Arch Linux (Manjaro, EndeavourOS, CachyOS)
 
 ```bash
-# Install Rust toolchain (required to build from source)
-sudo dnf install -y cargo rust
+# 1. Install build prerequisites & optional clipboard/desktop helpers
+sudo pacman -S --needed --noconfirm base-devel git rust wl-clipboard xclip xdg-utils
 
-# Install tman
+# 2. Install tman (via installer script or Cargo)
 curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+# OR build directly via Cargo:
+# cargo install --git https://github.com/IamShreshth/Tman.git --locked
 
-# Activate (add to ~/.bashrc or ~/.zshrc)
-echo 'eval "$(tman init bash)"' >> ~/.bashrc
-source ~/.bashrc
+# 3. Activate in your shell:
+source ~/.bashrc                         # Bash
+# source ~/.zshrc                        # Zsh
+# tman init fish | source                # Fish (append to ~/.config/fish/config.fish)
 ```
 
-### Arch Linux
+---
+
+### 2. Fedora (RHEL, CentOS Stream, Nobara)
 
 ```bash
-# Install Rust toolchain
-sudo pacman -S --noconfirm rust
+# 1. Install Rust toolchain & optional clipboard/desktop helpers
+sudo dnf install -y gcc git cargo rust wl-clipboard xclip xdg-utils
 
-# Install tman
+# 2. Install tman (via installer script or Cargo)
 curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+# OR build directly via Cargo:
+# cargo install --git https://github.com/IamShreshth/Tman.git --locked
 
-# Activate (add to ~/.bashrc or ~/.zshrc)
-echo 'eval "$(tman init bash)"' >> ~/.bashrc
-source ~/.bashrc
+# 3. Activate in your shell:
+source ~/.bashrc                         # Bash
+# source ~/.zshrc                        # Zsh
+# tman init fish | source                # Fish (append to ~/.config/fish/config.fish)
 ```
 
-> **AUR users:** If an AUR package becomes available, you can also use `yay -S tman` or `paru -S tman`.
+---
 
-### Ubuntu / Debian
+### 3. Ubuntu / Debian (Linux Mint, Pop!_OS, Kali)
 
 ```bash
-# Install Rust toolchain
-sudo apt update && sudo apt install -y cargo rustc
+# 1. Install build tools, Rust toolchain & optional clipboard/desktop helpers
+sudo apt update && sudo apt install -y build-essential curl git cargo rustc wl-clipboard xclip xdg-utils
 
-# Install tman
+# 2. Install tman (via installer script or Cargo)
 curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
+# OR build directly via Cargo:
+# cargo install --git https://github.com/IamShreshth/Tman.git --locked
 
-# Activate (add to ~/.bashrc or ~/.zshrc)
-echo 'eval "$(tman init bash)"' >> ~/.bashrc
-source ~/.bashrc
+# 3. Activate in your shell:
+source ~/.bashrc                         # Bash
+# source ~/.zshrc                        # Zsh
+# tman init fish | source                # Fish (append to ~/.config/fish/config.fish)
 ```
 
-> **Note on keybindings:** Most Linux terminal emulators intercept `Ctrl+Shift+T` (e.g., GNOME Terminal uses it to open a new tab). Use `Ctrl+Space` instead by setting `open = "ctrl-space"` in your tman config (`~/.config/tman/config.toml`).
+> **Tip for older Ubuntu/Debian releases:** If the `apt` Rust version is older than `1.70`, install the latest toolchain via `rustup`:
+> ```bash
+> curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+> source "$HOME/.cargo/env"
+> ```
+
+---
+
+### Manual Shell Hook Setup (If Installing via Cargo)
+
+If you installed via `cargo install` instead of `install.sh`, add the shell hook for your shell:
+
+| Shell | Command |
+| :--- | :--- |
+| **Bash** | `echo 'eval "$(tman init bash)"' >> ~/.bashrc && source ~/.bashrc` |
+| **Zsh** | `echo 'eval "$(tman init zsh)"' >> ~/.zshrc && source ~/.zshrc` |
+| **Fish** | `mkdir -p ~/.config/fish && echo 'tman init fish \| source' >> ~/.config/fish/config.fish && source ~/.config/fish/config.fish` |
+
+> **Note on Linux keybindings:** Most Linux terminal emulators intercept `Ctrl+Shift+T` to open a new tab. `tman` automatically binds **`Ctrl+Space`** alongside `Ctrl+Shift+T` so you can press `Ctrl+Space` out of the box on GNOME Terminal, Konsole, XFCE Terminal, Alacritty, Kitty, and WezTerm.
 
 ---
 
@@ -115,8 +177,10 @@ source ~/.bashrc
 | `Left` / `h` / `Backspace` | Submenus | Navigate to parent directory / previous view |
 | `b` | Menu / Files | Bookmark current directory or highlighted folder |
 | `d` or `x` | Bookmarks | Delete highlighted bookmark |
+| `Space` | Git Changed Files | Stage / unstage highlighted file in-place |
+| `Q` | File Browser | Quit HUD and `cd` shell into the browsed directory |
 | `Tab` | Browser / Runners | Open action menu (`Open with app`, `Open file manager`, copy path) |
-| `/` | Lists | Filter items with fuzzy search |
+| `/` | Lists | Filter items with multi-word fuzzy search |
 | `.` | File Browser | Toggle hidden dotfiles |
 | `m` | Submenus | Return to main menu |
 | `Esc` | Any View | Clear search / close modal / exit HUD |
@@ -131,10 +195,10 @@ source ~/.bashrc
 | Component | Requirement |
 | :--- | :--- |
 | **Operating System** | macOS (Apple Silicon & Intel) or Linux (x86_64, aarch64, musl/glibc) |
-| **Supported Shells** | Zsh (v5.0+) or Bash (v4.0+) |
+| **Supported Shells** | Zsh (v5.0+), Bash (v4.0+), or Fish (v3.4+) |
 | **Build Toolchain** | Rust 1.70+ and Cargo (only when building from source) |
 
-See [docs/linux.md](docs/linux.md) for Linux-specific details and [docs/requirements.txt](docs/requirements.txt) for technical specifications.
+See [linux.md](linux.md) for Linux-specific details and [docs/requirements.txt](docs/requirements.txt) for technical specifications.
 
 ---
 

@@ -116,6 +116,9 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     let mut h = vec![Span::styled(display_path(&app.cwd), Style::default().add_modifier(Modifier::BOLD))];
     if let Some(g) = &app.git {
         h.push(Span::styled(format!("   ⎇ {}", g.branch), Style::default().fg(Color::Rgb(80, 220, 150))));
+        if g.ahead > 0 || g.behind > 0 {
+            h.push(Span::styled(format!(" ↑{} ↓{}", g.ahead, g.behind), Style::default().fg(acc)));
+        }
         h.push(Span::styled(format!("  +{} ~{} ?{}", g.staged, g.modified, g.untracked), Style::default().fg(DIM)));
     }
     f.render_widget(Paragraph::new(Line::from(h)).block(block("tman".into(), acc)), rows[0]);
@@ -164,10 +167,20 @@ fn draw_list(f: &mut Frame, app: &mut App, area: Rect, acc: Color) {
     let items: Vec<ListItem> = app.filtered.iter().map(|&i| {
         let a = &app.items[i];
         let name_style = if a.is_dir { Style::default().fg(acc) } else if a.icon == "!" { Style::default().fg(Color::Rgb(240, 100, 100)) } else { Style::default() };
-        let mut sp = vec![Span::styled(format!("{} ", a.icon), Style::default().fg(DIM)), Span::styled(a.name.clone(), name_style)];
+        let mut sp = vec![Span::styled(format!("{} ", a.icon), Style::default().fg(DIM))];
+        if app.query.is_empty() {
+            sp.push(Span::styled(a.name.clone(), name_style));
+        } else {
+            let hits = crate::fuzzy::matched_indices(&app.query, &a.name);
+            let hi = name_style.fg(acc).add_modifier(Modifier::BOLD);
+            for (idx, ch) in a.name.chars().enumerate() {
+                sp.push(Span::styled(ch.to_string(), if hits.binary_search(&idx).is_ok() { hi } else { name_style }));
+            }
+        }
         if wide && !a.desc.is_empty() {
+            let short = a.desc.lines().next().unwrap_or("");
             let gap = pad.saturating_sub(a.name.chars().count()) + 2;
-            sp.push(Span::styled(format!("{}{}", " ".repeat(gap), a.desc), Style::default().fg(DIM)));
+            sp.push(Span::styled(format!("{}{}", " ".repeat(gap), short), Style::default().fg(DIM)));
         }
         ListItem::new(Line::from(sp))
     }).collect();
@@ -198,10 +211,11 @@ fn footer(app: &App, acc: Color) -> Line<'static> {
     let keys: &[(&str, &str)] = if app.overlay.is_some() { &[("Enter", "Confirm"), ("E", "Edit"), ("Esc", "Cancel")] } else {
         match &app.mode {
             Mode::Menu => &[("↑↓", "Move"), ("Enter", "Open"), ("b", "Bookmark dir"), ("Esc", "Close")],
-            Mode::Files => &[("↑↓", "Move"), ("→", "Enter dir"), ("←", "Parent"), ("Enter", "cd / open"), ("b", "Bookmark"), ("Tab", "Actions"), ("/", "Search"), (".", "Hidden"), ("m", "Menu"), ("Esc", "Close")],
+            Mode::Files => &[("↑↓", "Move"), ("→", "Enter dir"), ("←", "Parent"), ("Enter", "cd / open"), ("Q", "cd & quit"), ("b", "Bookmark"), ("Tab", "Actions"), ("/", "Search"), (".", "Hidden"), ("Esc", "Close")],
             Mode::Bookmarks => &[("↑↓", "Move"), ("Enter", "Jump / cd"), ("d / x", "Delete pin"), ("←", "Back"), ("Esc", "Close")],
             Mode::History => &[("type", "Search"), ("↑↓", "Move"), ("Enter", "Run"), ("Tab", "Edit first"), ("←", "Back"), ("Esc", "Close")],
             Mode::Find => &[("type", "Search"), ("↑↓", "Move"), ("Enter", "cd / open"), ("Tab", "Actions"), ("←", "Back"), ("Esc", "Close")],
+            Mode::GitFiles => &[("↑↓", "Move"), ("Space", "Stage/Unstage"), ("Enter", "Actions"), ("/", "Search"), ("←", "Back"), ("Esc", "Close")],
             Mode::Theme => &[("↑↓", "Move"), ("Enter", "Apply & Save"), ("←", "Back"), ("Esc", "Close")],
             _ => &[("↑↓", "Move"), ("Enter", "Select"), ("Tab", "Edit first"), ("←", "Back"), ("/", "Search"), ("Esc", "Close")],
         }

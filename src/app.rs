@@ -14,12 +14,13 @@ impl Cmd {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Mode { Menu, Files, History, Find, Git, GitFiles, Run, Actions(PathBuf), Theme, Bookmarks }
+pub enum Mode { Menu, Files, History, Find, Git, GitFiles, GitBranches, GitStashes, Run, Ports, Actions(PathBuf), Theme, Bookmarks }
 impl Mode {
     pub fn title(&self) -> &'static str {
         match self {
             Mode::Menu => "ACTIONS", Mode::Files => "NAVIGATE", Mode::History => "HISTORY", Mode::Find => "SEARCH",
-            Mode::Git => "GIT", Mode::GitFiles => "CHANGED FILES", Mode::Run => "RUN", Mode::Actions(_) => "FILE ACTIONS",
+            Mode::Git => "GIT", Mode::GitFiles => "CHANGED FILES", Mode::GitBranches => "BRANCHES", Mode::GitStashes => "STASHES",
+            Mode::Run => "RUN", Mode::Ports => "ACTIVE PORTS", Mode::Actions(_) => "FILE ACTIONS",
             Mode::Theme => "THEMES", Mode::Bookmarks => "BOOKMARKS",
         }
     }
@@ -44,7 +45,7 @@ fn act(name: &str, desc: &str, icon: &'static str, out: Outcome) -> Action {
 }
 
 pub enum Overlay { Danger(Cmd, &'static str), Preview(Cmd) }
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct Preview { pub title: String, pub lines: Vec<String> }
 
 pub struct App {
@@ -61,6 +62,7 @@ pub struct App {
     pub searching: bool,
     pub overlay: Option<Overlay>,
     pub preview: Preview,
+    ctx_cache: Option<Preview>,
     pub entered: Instant,
     pub quit: bool,
     pub result: Option<String>,
@@ -74,7 +76,7 @@ impl App {
         let mut a = App {
             show_hidden: cfg.ui.show_hidden, git: git::info(&cwd), start_cwd: cwd.clone(), cwd, cfg,
             mode: Mode::Menu, stack: vec![], items: vec![], filtered: vec![], sel: 0, query: String::new(),
-            searching: false, overlay: None, preview: Preview::default(), entered: Instant::now(),
+            searching: false, overlay: None, preview: Preview::default(), ctx_cache: None, entered: Instant::now(),
             quit: false, result: None, state: ListState::default(), hist: None,
         };
         a.rebuild();
@@ -99,20 +101,28 @@ impl App {
         match self.mode.clone() {
             Mode::Menu => vec![
                 act("Navigate", "Browse and jump between directories", "▸", Outcome::Goto(Mode::Files)),
-                act("Bookmarks", "Quick jump to pinned directories", "*", Outcome::Goto(Mode::Bookmarks)),
+                act("Bookmarks", "Quick jump to pinned & recent directories", "*", Outcome::Goto(Mode::Bookmarks)),
                 act("History", "Search your real shell history", "↺", Outcome::Goto(Mode::History)),
                 act("Search", "Find files and folders below here", "⌕", Outcome::Goto(Mode::Find)),
                 act("Git", "Repository state and operations", "⎇", Outcome::Goto(Mode::Git)),
                 act("Run", "Commands discovered in this project", "▶", Outcome::Goto(Mode::Run)),
+                act("Ports", "Inspect listening ports & kill processes", "⚡", Outcome::Goto(Mode::Ports)),
                 act("Theme", "Choose an accent color theme", "#", Outcome::Goto(Mode::Theme)),
             ],
             Mode::Bookmarks => {
-                self.cfg.bookmarks.iter().map(|b| {
+                let mut v: Vec<Action> = self.cfg.bookmarks.iter().map(|b| {
                     let p = PathBuf::from(b);
                     let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| b.clone());
                     let cmd = format!("cd -- {}", tfs::shell_quote(b));
                     Action { path: Some(p), is_dir: true, ..act(&name, b, "*", Outcome::Emit(Cmd::run(cmd))) }
-                }).collect()
+                }).collect();
+                for r in self.cfg.recent_dirs() {
+                    let p = PathBuf::from(&r);
+                    let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_else(|| r.clone());
+                    let cmd = format!("cd -- {}", tfs::shell_quote(&r));
+                    v.push(Action { path: Some(p), is_dir: true, ..act(&name, &r, "↺", Outcome::Emit(Cmd::run(cmd))) });
+                }
+                v
             },
             Mode::Theme => {
                 let current = self.cfg.ui.accent.trim().to_lowercase();
@@ -146,21 +156,38 @@ impl App {
                 if self.git.is_none() { return vec![]; }
                 let r = |n: &str, d: &str, c: &str| act(n, d, "⎇", Outcome::Emit(Cmd::run(c)));
                 vec![
-                    act("Changed files", "Pick a file, then choose what to do", "⎇", Outcome::Goto(Mode::GitFiles)),
+                    act("Changed files", "Stage, unstage, or inspect modified files", "⎇", Outcome::Goto(Mode::GitFiles)),
+                    act("Branches", "Switch branches with commit log preview", "⎇", Outcome::Goto(Mode::GitBranches)),
+                    act("Stashes", "Inspect and pop saved stashes", "⎇", Outcome::Goto(Mode::GitStashes)),
                     r("Status", "Short status with branch", "git status -sb"),
                     r("Diff", "Unstaged changes", "git diff"),
-                    r("Branches", "All local and remote branches", "git branch -a"),
                     r("Commits", "Last 20 commits", "git log --oneline -n 20"),
-                    r("Stash list", "Saved stashes", "git stash list"),
                     act("Pull", "Fast-forward only, with preview", "⎇", Outcome::Emit(Cmd::run("git pull --ff-only").previewed())),
                     act("Push", "Push current branch, with preview", "⎇", Outcome::Emit(Cmd::run("git push").previewed())),
                 ]
             }
             Mode::GitFiles => git::changed_files(&self.cwd).into_iter().map(|(st, p)| {
-                let name = format!("{:<2} {}", st, p.strip_prefix(&self.cwd).unwrap_or(&p).display());
-                Action { path: Some(p.clone()), out: Outcome::Goto(Mode::Actions(p)), ..act(&name, "", "·", Outcome::Goto(Mode::Menu)) }
+                let name = format!("{:<2} {}", st.trim(), p.strip_prefix(&self.cwd).unwrap_or(&p).display());
+                Action { path: Some(p.clone()), out: Outcome::Goto(Mode::Actions(p)), ..act(&name, &st, "·", Outcome::Goto(Mode::Menu)) }
             }).collect(),
-            Mode::Run => run::discover(&self.cwd).into_iter().map(|r| act(&r.cmd, r.source, "▶", Outcome::Emit(Cmd::run(r.cmd.clone())))).collect(),
+            Mode::GitBranches => git::branches(&self.cwd).into_iter().map(|(b, subj)| {
+                let target = b.strip_prefix("origin/").unwrap_or(&b);
+                let cmd = format!("git switch {}", tfs::shell_quote(target));
+                act(&b, &subj, "⎇", Outcome::Emit(Cmd::run(cmd)))
+            }).collect(),
+            Mode::GitStashes => git::stashes(&self.cwd).into_iter().map(|(r, desc)| {
+                let cmd = format!("git stash pop {}", tfs::shell_quote(&r));
+                act(&r, &desc, "⎇", Outcome::Emit(Cmd::run(cmd)))
+            }).collect(),
+            Mode::Run => {
+                let root = self.git.as_ref().map(|g| g.root.as_path());
+                run::discover(&self.cwd, root).into_iter().map(|r| act(&r.cmd, &r.source, "▶", Outcome::Emit(Cmd::run(r.cmd.clone())))).collect()
+            }
+            Mode::Ports => sys::listening_ports().into_iter().map(|p| {
+                let name = format!(":{:<6} {}", p.port, p.proc_name);
+                let desc = format!("PID {}", p.pid);
+                act(&name, &desc, "⚡", Outcome::Emit(Cmd::run(format!("kill -9 {}", p.pid))))
+            }).collect(),
             Mode::Actions(p) => {
                 let q = self.rel(&p);
                 let is_dir = p.is_dir();
@@ -189,6 +216,7 @@ impl App {
                     v.push(act("Git diff", "Changes vs HEAD", "⎇", Outcome::Emit(Cmd::run(format!("git diff HEAD -- {q}")))));
                     v.push(act("Git history", "Commits touching this file", "⎇", Outcome::Emit(Cmd::run(format!("git log --oneline -n 20 -- {q}")))));
                     v.push(act("Blame", "Per-line authorship", "⎇", Outcome::Emit(Cmd::run(format!("git blame {q}")))));
+                    v.push(act("Discard changes", "Restore working-tree file to HEAD", "!", Outcome::Emit(Cmd::run(format!("git checkout -- {q}")))));
                 }
                 v.push(act("Rename", "Pre-fills mv; you edit the target", "▸", Outcome::Emit(Cmd::edit(format!("mv -- {q} {q}")))));
                 v.push(act("Delete", "Always asks for confirmation", "!", Outcome::Emit(Cmd::run(format!("rm {}-- {q}", if is_dir { "-r " } else { "" })))));
@@ -256,6 +284,7 @@ impl App {
     fn chdir(&mut self, p: PathBuf, select: Option<PathBuf>) {
         self.cwd = p;
         self.git = git::info(&self.cwd);
+        self.ctx_cache = None;
         self.query.clear();
         self.rebuild();
         if let Some(s) = select {
@@ -273,7 +302,7 @@ impl App {
     pub fn update_preview(&mut self) {
         let Some(a) = self.current().map(|i| self.items[i].clone()) else {
             self.preview = if self.mode == Mode::Menu {
-                self.context()
+                self.cached_context()
             } else if self.mode == Mode::Bookmarks {
                 Preview {
                     title: "BOOKMARKS".into(),
@@ -293,12 +322,20 @@ impl App {
         };
         let mode = self.mode.clone();
         self.preview = match mode {
-            Mode::Menu => self.context(),
+            Mode::Menu => self.cached_context(),
             Mode::GitFiles => {
                 let p = a.path.clone().unwrap();
                 let mut lines = git::diff_preview(&self.cwd, &p, 80);
                 if lines.is_empty() { lines = tfs::head(&p, 80); }
                 Preview { title: a.name.trim().to_string(), lines }
+            }
+            Mode::GitBranches => {
+                let lines = git::branch_log(&self.cwd, &a.name, 25);
+                Preview { title: format!("BRANCH: {}", a.name), lines }
+            }
+            Mode::GitStashes => {
+                let lines = git::stash_preview(&self.cwd, &a.name, 80);
+                Preview { title: format!("STASH: {}", a.name), lines }
             }
             Mode::Files | Mode::Find => {
                 let p = a.path.clone().unwrap();
@@ -352,6 +389,12 @@ impl App {
             }
         };
     }
+    fn cached_context(&mut self) -> Preview {
+        if let Some(c) = &self.ctx_cache { return c.clone(); }
+        let c = self.context();
+        self.ctx_cache = Some(c.clone());
+        c
+    }
     fn context(&self) -> Preview {
         let mut l = vec![];
 
@@ -375,7 +418,7 @@ impl App {
             Some(g) => l.push(format!("  Git:     ⎇ {}  +{} ~{} ?{}", g.branch, g.staged, g.modified, g.untracked)),
             None => l.push("  Git:     not a git repository".into()),
         }
-        let k = run::kinds(&self.cwd);
+        let k = run::kinds(&self.cwd, self.git.as_ref().map(|g| g.root.as_path()));
         if !k.is_empty() { l.push(format!("  Project: {}", k.join(", "))); }
         if self.cfg.is_bookmarked(&self.cwd.to_string_lossy()) {
             l.push("  Status:  Pinned in Bookmarks".to_string());
@@ -416,6 +459,7 @@ impl App {
             }
             Outcome::ToggleBookmark(p) => {
                 self.cfg.toggle_bookmark(p.to_string_lossy().to_string());
+                self.ctx_cache = None;
                 self.rebuild();
             }
         }
@@ -462,8 +506,27 @@ impl App {
             KeyCode::Char(c) if !ctrl && self.searching => { self.query.push(c); self.refilter(); }
             KeyCode::Char('/') if self.mode != Mode::Menu => self.searching = true,
             KeyCode::Char('q') => self.quit = true,
+            KeyCode::Char('Q') if !self.searching => {
+                if self.cwd != self.start_cwd {
+                    self.finish(Cmd::run(format!("cd -- {}", tfs::shell_quote(&self.cwd.to_string_lossy()))));
+                } else {
+                    self.quit = true;
+                }
+            }
             KeyCode::Char('m') => { self.stack.clear(); self.mode = Mode::Menu; self.enter_mode(); }
+            KeyCode::Char(' ') if !self.searching && self.mode == Mode::GitFiles => {
+                if let Some(i) = self.current() {
+                    if let Some(p) = self.items[i].path.clone() {
+                        let st = self.items[i].desc.clone();
+                        git::toggle_stage(&self.cwd, &p, &st);
+                        self.git = git::info(&self.cwd);
+                        self.ctx_cache = None;
+                        self.rebuild();
+                    }
+                }
+            }
             KeyCode::Char('b') if !self.searching => {
+                self.ctx_cache = None;
                 match self.mode {
                     Mode::Files => {
                         if let Some(i) = self.current() {

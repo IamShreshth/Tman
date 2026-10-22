@@ -72,79 +72,109 @@ document.addEventListener('DOMContentLoaded', () => {
   const simList = document.getElementById('sim-list');
   const dynTitle = document.getElementById('dyn-block-title');
   const dynContent = document.getElementById('dyn-content');
+  const rightPanelTitle = document.getElementById('right-panel-title');
+
+  const themeColors = {
+    cyan: '#46d7e6',
+    blue: '#5aa0ff',
+    green: '#50dc96',
+    magenta: '#c878ff',
+    peach: '#ffb48c'
+  };
 
   const actionStates = {
     navigate: {
-      title: 'DIRECTORY CONTENTS',
+      panel: 'MISSION CONTROL',
+      title: '━━━ DIRECTORY CONTENTS ━━━━━━━━━━━━━━━',
       items: [
         '▸ src/',
         '▸ tests/',
-        '· Cargo.toml',
-        '· Dockerfile',
-        '· README.md'
+        '  Cargo.toml',
+        '  Dockerfile',
+        '  README.md'
       ]
     },
     bookmarks: {
-      title: 'PINNED BOOKMARKS',
+      panel: 'PREVIEW  BOOKMARKS',
+      title: '━━━ PINNED & RECENT (ZOXIDE) ━━━━━━━━━',
       items: [
         '* ~/projects/tman',
         '* ~/code/dotfiles',
-        '* ~/.config/nvim',
-        '* ~/work/backend-api'
+        '↺ ~/.config/nvim  [recent]',
+        '↺ ~/work/backend-api  [recent]'
       ]
     },
     history: {
-      title: 'LIVE SHELL HISTORY (DEDUPLICATED)',
+      panel: 'PREVIEW  HISTORY',
+      title: '━━━ LIVE SHELL HISTORY (DEDUPLICATED) ━',
       items: [
-        '↺ cargo test --release',
-        '↺ git status -sb',
-        '↺ docker compose up -d',
-        '↺ nvim src/main.rs',
-        '↺ git push origin main'
+        '· cargo test --release',
+        '· git status -sb',
+        '· docker compose up -d',
+        '· nvim src/main.rs',
+        '· git push fork linux_ins'
       ]
     },
     search: {
-      title: 'FUZZY MATCHES (QUERY: "sys")',
+      panel: 'PREVIEW  SEARCH',
+      title: '━━━ GITIGNORE-AWARE FUZZY MATCHES ━━━━',
       items: [
-        '· src/sys.rs (kernel telemetry)',
-        '· tests/test_sys.rs',
-        '· src/safety.rs'
+        '· src/sys.rs',
+        '· src/safety.rs',
+        '· src/git.rs',
+        '· files/install.sh'
       ]
     },
     git: {
-      title: 'GIT ACTIONS & STATUS',
+      panel: 'PREVIEW  GIT',
+      title: '━━━ INTERACTIVE GIT WORKFLOWS ━━━━━━━━',
       items: [
-        '⎇ Status: 2 staged, 1 modified, 0 untracked',
-        '⎇ Commit: "feat: add linux support"',
-        '⎇ Diff: unstaged changes in src/sys.rs',
-        '⎇ Pull (fast-forward preview)',
-        '⎇ Push (origin/main)'
+        '⎇ Changed files  (Space to stage/unstage)',
+        '⎇ Branches       (git switch + log preview)',
+        '⎇ Stashes        (git stash pop + diff)',
+        '+185 -79 in src/app.rs, src/git.rs'
       ]
     },
     run: {
-      title: 'DISCOVERED WORKFLOW TARGETS',
+      panel: 'PREVIEW  RUN',
+      title: '━━━ DISCOVERED PROJECT TARGETS ━━━━━━━',
       items: [
-        '▶ cargo build',
-        '▶ cargo run -- ui',
-        '▶ cargo test',
-        '▶ cargo clippy',
-        '▶ docker build -t app .'
+        '▶ cargo build          Cargo.toml',
+        '▶ cargo test           Cargo.toml',
+        '▶ docker compose up -d Docker Compose',
+        '▶ ${EDITOR:-vi} .env   .env (DATABASE_URL = ***)'
+      ]
+    },
+    ports: {
+      panel: 'PREVIEW  ACTIVE PORTS',
+      title: '━━━ LISTENING TCP PORTS (LSOF / SS) ━━',
+      items: [
+        '◈ :3000   node          PID 41230',
+        '◈ :5432   postgres      PID 1892',
+        '◈ :8080   cargo-watch   PID 50211'
       ]
     },
     theme: {
-      title: 'ACCENT COLOR PALETTE',
+      panel: 'PREVIEW  THEMES',
+      title: '━━━ CLICK A THEME TO PREVIEW ━━━━━━━━━',
       items: [
-        '# Cyan (active default)',
-        '# Blue (Tokyo Night)',
-        '# Green (Matrix)',
-        '# Magenta (Synthwave)',
-        '# Peach (Catppuccin)'
+        '# cyan     Futuristic high-tech cyan [active]',
+        '# blue     Electric royal blue',
+        '# green    Matrix / terminal emerald green',
+        '# magenta  Cyberpunk neon magenta',
+        '# peach    Soft warm aesthetic peach'
       ]
     }
   };
 
   if (simList && dynTitle && dynContent) {
     const items = simList.querySelectorAll('.hud-item');
+    let hudHovered = false;
+
+    if (interactiveView) {
+      interactiveView.addEventListener('mouseenter', () => { hudHovered = true; });
+      interactiveView.addEventListener('mouseleave', () => { hudHovered = false; });
+    }
 
     function selectAction(item) {
       items.forEach(i => {
@@ -152,13 +182,27 @@ document.addEventListener('DOMContentLoaded', () => {
         i.querySelector('.item-pointer').textContent = ' ';
       });
       item.classList.add('active');
-      item.querySelector('.item-pointer').textContent = '›';
+      item.querySelector('.item-pointer').textContent = '❯';
 
       const actionKey = item.getAttribute('data-action');
       const state = actionStates[actionKey];
       if (state) {
+        if (rightPanelTitle) rightPanelTitle.textContent = state.panel;
         dynTitle.textContent = state.title;
-        dynContent.innerHTML = state.items.map(text => `<div class="dyn-item">${escapeHtml(text)}</div>`).join('');
+        dynContent.innerHTML = state.items.map(text => {
+          const themeMatch = actionKey === 'theme' ? text.match(/^#\s+(\w+)/) : null;
+          const attr = themeMatch ? ` data-theme-color="${themeMatch[1]}" style="cursor:pointer"` : '';
+          return `<div class="dyn-item"${attr}>${escapeHtml(text)}</div>`;
+        }).join('');
+
+        if (actionKey === 'theme') {
+          dynContent.querySelectorAll('[data-theme-color]').forEach(el => {
+            el.addEventListener('click', () => {
+              const c = themeColors[el.getAttribute('data-theme-color')];
+              if (c) document.documentElement.style.setProperty('--cyan-primary', c);
+            });
+          });
+        }
       }
     }
 
@@ -166,17 +210,19 @@ document.addEventListener('DOMContentLoaded', () => {
       item.addEventListener('click', () => selectAction(item));
     });
 
-    // Keyboard navigation (Up / Down) when focusing on the simulator
+    // Keyboard navigation (Up/Down or j/k) only when hovering or focusing the simulator
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      const focused = document.activeElement === interactiveView || (interactiveView && interactiveView.contains(document.activeElement));
+      if (!hudHovered && !focused) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'j' || e.key === 'k') {
         const activeItem = simList.querySelector('.hud-item.active');
         if (!activeItem) return;
         const all = Array.from(items);
         const idx = all.indexOf(activeItem);
-        if (e.key === 'ArrowDown' && idx < all.length - 1) {
+        if ((e.key === 'ArrowDown' || e.key === 'j') && idx < all.length - 1) {
           e.preventDefault();
           selectAction(all[idx + 1]);
-        } else if (e.key === 'ArrowUp' && idx > 0) {
+        } else if ((e.key === 'ArrowUp' || e.key === 'k') && idx > 0) {
           e.preventDefault();
           selectAction(all[idx - 1]);
         }

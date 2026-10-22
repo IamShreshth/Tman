@@ -89,7 +89,11 @@ pub fn uptime() -> String {
 #[cfg(target_os = "macos")]
 pub fn battery() -> Option<String> {
     let out = std::process::Command::new("pmset").arg("-g").arg("batt").output().ok()?;
-    let text = String::from_utf8_lossy(&out.stdout);
+    parse_pmset(&String::from_utf8_lossy(&out.stdout))
+}
+
+#[cfg(any(target_os = "macos", test))]
+fn parse_pmset(text: &str) -> Option<String> {
     for line in text.lines() {
         if line.contains('%') {
             let parts: Vec<&str> = line.split('\t').collect();
@@ -160,12 +164,38 @@ pub fn battery() -> Option<String> {
 #[cfg(target_os = "macos")]
 pub fn memory() -> Option<String> {
     use std::ffi::CString;
-    let mut memsize: u64 = 0;
+    let mut total: u64 = 0;
     let mut len = std::mem::size_of::<u64>();
     let name = CString::new("hw.memsize").unwrap();
-    let res = unsafe { libc::sysctlbyname(name.as_ptr(), &mut memsize as *mut _ as *mut libc::c_void, &mut len, std::ptr::null_mut(), 0) };
-    if res == 0 && memsize > 0 {
-        Some(format_bytes(memsize))
+    if unsafe { libc::sysctlbyname(name.as_ptr(), &mut total as *mut _ as *mut libc::c_void, &mut len, std::ptr::null_mut(), 0) } != 0 || total == 0 {
+        return None;
+    }
+    if let Ok(out) = std::process::Command::new("vm_stat").output() {
+        if let Some(s) = parse_vm_stat(&String::from_utf8_lossy(&out.stdout), total) {
+            return Some(s);
+        }
+    }
+    Some(format_bytes(total))
+}
+
+#[cfg(any(target_os = "macos", test))]
+fn parse_vm_stat(text: &str, total: u64) -> Option<String> {
+    let page_size: u64 = text.lines().next()
+        .and_then(|l| l.split("page size of ").nth(1))
+        .and_then(|s| s.split_whitespace().next())
+        .and_then(|n| n.parse().ok())
+        .unwrap_or(4096);
+    let mut used_pages = 0u64;
+    for line in text.lines() {
+        if line.starts_with("Pages active:") || line.starts_with("Pages wired down:") || line.starts_with("Pages occupied by compressor:") {
+            if let Some(v) = line.split(':').nth(1).and_then(|s| s.trim().trim_end_matches('.').parse::<u64>().ok()) {
+                used_pages += v;
+            }
+        }
+    }
+    if used_pages > 0 && total > 0 {
+        let used = (used_pages * page_size).min(total);
+        Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0))
     } else {
         None
     }
@@ -174,22 +204,30 @@ pub fn memory() -> Option<String> {
 #[cfg(target_os = "linux")]
 pub fn memory() -> Option<String> {
     if let Ok(s) = std::fs::read_to_string("/proc/meminfo") {
+        let (mut total_kb, mut avail_kb) = (None, None);
         for line in s.lines() {
             if line.starts_with("MemTotal:") {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                if let Some(kb_str) = parts.get(1) {
-                    if let Ok(kb) = kb_str.parse::<u64>() {
-                        return Some(format_bytes(kb * 1024));
-                    }
-                }
+                total_kb = line.split_whitespace().nth(1).and_then(|v| v.parse::<u64>().ok());
+            } else if line.starts_with("MemAvailable:") {
+                avail_kb = line.split_whitespace().nth(1).and_then(|v| v.parse::<u64>().ok());
             }
+        }
+        if let Some(t) = total_kb {
+            let total = t * 1024;
+            if let Some(a) = avail_kb {
+                let used = total.saturating_sub(a * 1024);
+                return Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0));
+            }
+            return Some(format_bytes(total));
         }
     }
     let mut info: libc::sysinfo = unsafe { std::mem::zeroed() };
     if unsafe { libc::sysinfo(&mut info) } == 0 {
-        let total = (info.totalram as u64) * (info.mem_unit as u64);
+        let unit = info.mem_unit as u64;
+        let total = (info.totalram as u64) * unit;
         if total > 0 {
-            return Some(format_bytes(total));
+            let used = total.saturating_sub((info.freeram as u64) * unit);
+            return Some(format!("{} / {} ({:.0}%)", format_bytes(used), format_bytes(total), (used as f64 / total as f64) * 100.0));
         }
     }
     None
@@ -222,5 +260,83 @@ fn format_duration(secs: u64) -> String {
         format!("{hours}h {mins}m")
     } else {
         format!("{mins}m")
+    }
+}
+
+pub struct PortInfo {
+    pub port: String,
+    pub pid: String,
+    pub proc_name: String,
+}
+
+pub fn listening_ports() -> Vec<PortInfo> {
+    use std::collections::HashSet;
+    use std::process::Command;
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+
+    if let Ok(o) = Command::new("lsof").args(["-iTCP", "-sTCP:LISTEN", "-P", "-n"]).output() {
+        if o.status.success() {
+            return parse_lsof(&String::from_utf8_lossy(&o.stdout));
+        }
+    }
+
+    if let Ok(o) = Command::new("ss").args(["-lptnH"]).output() {
+        if o.status.success() {
+            for line in String::from_utf8_lossy(&o.stdout).lines() {
+                let cols: Vec<&str> = line.split_whitespace().collect();
+                if cols.len() >= 5 {
+                    let local = cols[3];
+                    let port = local.rsplit(':').next().unwrap_or("").to_string();
+                    let proc_col = cols.get(5).copied().unwrap_or("");
+                    let proc_name = proc_col.split('"').nth(1).unwrap_or("process").to_string();
+                    let pid = proc_col.split("pid=").nth(1).and_then(|s| s.split(',').next()).unwrap_or("").to_string();
+                    if !port.is_empty() && !pid.is_empty() && seen.insert((port.clone(), pid.clone())) {
+                        out.push(PortInfo { port, pid, proc_name });
+                    }
+                }
+            }
+        }
+    }
+    out
+}
+
+fn parse_lsof(text: &str) -> Vec<PortInfo> {
+    use std::collections::HashSet;
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
+    for line in text.lines().skip(1) {
+        let cols: Vec<&str> = line.split_whitespace().collect();
+        if cols.len() >= 9 {
+            let proc_name = cols[0].to_string();
+            let pid = cols[1].to_string();
+            let addr = cols[cols.len() - 2];
+            if let Some(port) = addr.rsplit(':').next() {
+                if seen.insert((port.to_string(), pid.clone())) {
+                    out.push(PortInfo { port: port.to_string(), pid, proc_name });
+                }
+            }
+        }
+    }
+    out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn macos_vm_stat_and_pmset_and_lsof() {
+        let vm = "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free:                               12000.\nPages active:                            262144.\nPages inactive:                          100000.\nPages wired down:                        131072.\nPages occupied by compressor:            131072.\n";
+        let total = 16 * 1024 * 1024 * 1024u64; // 16 GB
+        assert_eq!(parse_vm_stat(vm, total).as_deref(), Some("8.0 GB / 16.0 GB (50%)"));
+
+        let pm = "Now drawing from 'Battery Power'\n -InternalBattery-0 (id=123)\t84%; discharging; 3:45 remaining present: true\n";
+        assert_eq!(parse_pmset(pm).as_deref(), Some("84% (discharging)"));
+
+        let lsof_out = "COMMAND   PID   USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nnode    41230   user   21u  IPv6 0x123456789      0t0  TCP *:3000 (LISTEN)\n";
+        let ports = parse_lsof(lsof_out);
+        assert_eq!(ports.len(), 1);
+        assert_eq!((ports[0].port.as_str(), ports[0].pid.as_str(), ports[0].proc_name.as_str()), ("3000", "41230", "node"));
     }
 }

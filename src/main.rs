@@ -17,14 +17,14 @@ fn main() {
     match a.first().map(String::as_str) {
         Some("-h") | Some("--help") | Some("help") => {
             println!("tman {} - Context-aware interactive layer over your terminal", env!("CARGO_PKG_VERSION"));
-            println!("\nUsage:\n  tman [command]\n\nCommands:\n  ui               Launch interactive TUI HUD (default)\n  init <zsh|bash>  Output shell integration script\n  config-path      Print configuration file path\n  default-config   Output default TOML configuration\n\nOptions:\n  -h, --help       Print help information\n  -V, --version    Print version information");
+            println!("\nUsage:\n  tman [command]\n\nCommands:\n  ui                     Launch interactive TUI HUD (default)\n  init <zsh|bash|fish>   Output shell integration script\n  config-path            Print configuration file path\n  default-config         Output default TOML configuration\n\nOptions:\n  -h, --help             Print help information\n  -V, --version          Print version information");
         }
         Some("-V") | Some("--version") | Some("version") => {
             println!("tman {}", env!("CARGO_PKG_VERSION"));
         }
         Some("init") => match a.get(1).and_then(|s| init::script(s, &config::Config::load())) {
             Some(t) => print!("{t}"),
-            None => { eprintln!("usage: tman init <zsh|bash>"); exit(2) }
+            None => { eprintln!("usage: tman init <zsh|bash|fish>"); exit(2) }
         },
         Some("config-path") => println!("{}", config::path().display()),
         Some("default-config") => print!("{}", config::DEFAULT_TOML),

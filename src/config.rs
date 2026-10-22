@@ -88,26 +88,7 @@ impl Config {
             let _ = std::fs::create_dir_all(parent);
         }
         let current = std::fs::read_to_string(&p).unwrap_or_else(|_| DEFAULT_TOML.to_string());
-        let mut new_lines = Vec::new();
-        let mut found = false;
-        for line in current.lines() {
-            let trimmed = line.trim_start();
-            if trimmed.starts_with("accent =") || trimmed.starts_with("accent=") {
-                let comment = if let Some((_, c)) = line.split_once('#') {
-                    format!(" #{}", c)
-                } else {
-                    String::new()
-                };
-                new_lines.push(format!("accent = \"{}\"{}", accent, comment));
-                found = true;
-            } else {
-                new_lines.push(line.to_string());
-            }
-        }
-        if !found {
-            new_lines.push(format!("accent = \"{}\"", accent));
-        }
-        let _ = std::fs::write(&p, new_lines.join("\n") + "\n");
+        let _ = std::fs::write(&p, format_accent_toml(&current, accent));
     }
 
     pub fn is_bookmarked(&self, path: &str) -> bool {
@@ -148,6 +129,23 @@ impl Config {
         let current = std::fs::read_to_string(&p).unwrap_or_else(|_| DEFAULT_TOML.to_string());
         let updated = format_bookmarks_toml(&current, &self.bookmarks);
         let _ = std::fs::write(&p, updated);
+    }
+
+    pub fn recent_dirs(&self) -> Vec<String> {
+        std::process::Command::new("zoxide")
+            .args(["query", "-l"])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| {
+                String::from_utf8_lossy(&o.stdout)
+                    .lines()
+                    .map(|l| l.trim().to_string())
+                    .filter(|p| !p.is_empty() && !self.is_bookmarked(p) && std::path::Path::new(p).is_dir())
+                    .take(15)
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 }
 
@@ -193,9 +191,41 @@ pub fn format_bookmarks_toml(current: &str, bookmarks: &[String]) -> String {
     joined + "\n"
 }
 
+pub fn format_accent_toml(current: &str, accent: &str) -> String {
+    let mut new_lines = Vec::new();
+    let mut found = false;
+    for line in current.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with("accent =") || trimmed.starts_with("accent=") {
+            let comment = line.split_once('#').map(|(_, c)| format!(" #{c}")).unwrap_or_default();
+            new_lines.push(format!("accent = \"{accent}\"{comment}"));
+            found = true;
+        } else {
+            new_lines.push(line.to_string());
+        }
+    }
+    if !found {
+        if let Some(pos) = new_lines.iter().position(|l| l.trim() == "[ui]") {
+            new_lines.insert(pos + 1, format!("accent = \"{accent}\""));
+        } else {
+            new_lines.push("[ui]".into());
+            new_lines.push(format!("accent = \"{accent}\""));
+        }
+    }
+    new_lines.join("\n") + "\n"
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_set_accent_missing_key() {
+        let initial = "[ui]\nanimations = true\n\n[safety]\nconfirm_destructive = true\n";
+        let updated = format_accent_toml(initial, "magenta");
+        let cfg: Config = toml::from_str(&updated).unwrap();
+        assert_eq!(cfg.ui.accent, "magenta");
+    }
 
     #[test]
     fn test_format_and_parse_bookmarks() {
