@@ -260,6 +260,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // --- 6. Distro Pill Switcher (inside Linux tab) ---
+  const distroPillsContainer = document.getElementById('distro-pills');
+  if (distroPillsContainer) {
+    distroPillsContainer.addEventListener('click', (e) => {
+      const pill = e.target.closest('.distro-pill');
+      if (!pill) return;
+      const distro = pill.getAttribute('data-distro');
+
+      // Update active pill
+      distroPillsContainer.querySelectorAll('.distro-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      // Show matching content panel
+      document.querySelectorAll('.distro-content').forEach(dc => dc.classList.remove('active'));
+      const panel = document.getElementById(`dc-${distro}`);
+      if (panel) panel.classList.add('active');
+    });
+  }
+
   function escapeHtml(str) {
     return str.replace(/[&<>'"]/g, 
       tag => ({

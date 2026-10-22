@@ -450,129 +450,37 @@
     <div class="container">
       <div class="section-header">
         <h2 class="section-title">Quick Installation</h2>
-        <p class="section-desc">Get started in seconds on macOS or Linux.</p>
+        <p class="section-desc">One command. That's it.</p>
       </div>
 
       <div class="install-tabs-card">
         <div class="install-tabs-nav" role="tablist">
-          <button class="inst-tab active" data-tab="curl" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
-            <span>Single-Step</span>
-          </button>
-          <button class="inst-tab" data-tab="macos" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-            <span>macOS</span>
-          </button>
-          <button class="inst-tab" data-tab="distros" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-            <span>Linux Distros</span>
-          </button>
-          <button class="inst-tab" data-tab="cargo" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-            <span>Cargo (Rust)</span>
-          </button>
-          <button class="inst-tab" data-tab="source" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-            <span>From Source</span>
-          </button>
-          <button class="inst-tab" data-tab="docker" role="tab">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12.5c-.5-.8-1.6-1.1-2.5-.9-.2-1.1-.9-2-1.9-2.5l-.4-.2-.2.4c-.4.8-.5 1.8-.2 2.6-.5.3-1.2.4-1.8.4H2.5c-.3 2.5.5 5 2.2 6.6C6.4 20.5 8.9 21 12 21c5.2 0 9-2.4 10.6-6.7.7.1 1.5 0 2-.5l.2-.2-.3-.3c-.6-.6-1.5-.9-2.5-.8z"></path></svg>
-            <span>Docker</span>
-          </button>
+          <button class="inst-tab active" data-tab="macos" role="tab" id="tab-btn-macos"> macOS</button>
+          <button class="inst-tab" data-tab="linux" role="tab" id="tab-btn-linux">🐧 Linux</button>
         </div>
 
-        <div class="install-tab-content active" id="tab-curl">
-          <p class="tab-note">Downloads the standalone binary, detects architecture (x86_64 or aarch64), and configures your shell hook automatically:</p>
+        <!-- macOS -->
+        <div class="install-tab-content active" id="tab-macos">
+          <p class="tab-note">Paste this in your terminal — it installs tman and wires up your shell hook automatically:</p>
           <div class="code-block">
             <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
             <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy command">Copy</button>
           </div>
-          <div class="tab-note mt-2">Then reload your active shell:</div>
-          <div class="code-block">
-            <pre><code>source ~/.zshrc                        # Zsh
-source ~/.bashrc                       # Bash
-tman init fish | source                # Fish</code></pre>
-            <button class="code-copy-btn" data-clipboard="source ~/.zshrc" aria-label="Copy command">Copy</button>
-          </div>
+          <p class="tab-note mt-2">Then reload your shell: <code>source ~/.zshrc</code> &nbsp;·&nbsp; Press <kbd>Ctrl+Shift+T</kbd> to open tman.</p>
         </div>
 
-        <div class="install-tab-content" id="tab-macos">
-          <p class="tab-note"><strong>macOS (Apple Silicon M1/M2/M3/M4 &amp; Intel)</strong> — One-line installer (auto-runs <code>codesign</code> and configures <code>~/.zshrc</code>):</p>
+        <!-- Linux -->
+        <div class="install-tab-content" id="tab-linux">
+          <p class="tab-note">Same single command — auto-detects your distro, arch (<code>x86_64</code> / <code>aarch64</code>), and libc (<code>glibc</code> / <code>musl</code>):</p>
           <div class="code-block">
-            <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash
-source ~/.zshrc</code></pre>
-            <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash && source ~/.zshrc" aria-label="Copy macOS one-liner">Copy</button>
+            <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+            <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy command">Copy</button>
           </div>
-          <p class="tab-note mt-2"><strong>Homebrew + Cargo</strong> (Build from source on macOS):</p>
-          <div class="code-block">
-            <pre><code>brew install rust
-cargo install --git https://github.com/IamShreshth/Tman.git --locked
-echo 'eval "$(tman init zsh)"' >> ~/.zshrc && source ~/.zshrc</code></pre>
-            <button class="code-copy-btn" data-clipboard="brew install rust && cargo install --git https://github.com/IamShreshth/Tman.git --locked && echo 'eval &quot;$(tman init zsh)&quot;' >> ~/.zshrc && source ~/.zshrc" aria-label="Copy macOS Homebrew command">Copy</button>
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-distros">
-          <p class="tab-note"><strong>Arch Linux</strong> (Manjaro, EndeavourOS, CachyOS):</p>
-          <div class="code-block">
-            <pre><code>sudo pacman -S --needed --noconfirm base-devel git rust wl-clipboard xclip xdg-utils
-curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-            <button class="code-copy-btn" data-clipboard="sudo pacman -S --needed --noconfirm base-devel git rust wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Arch command">Copy</button>
-          </div>
-          <p class="tab-note mt-2"><strong>Fedora</strong> (RHEL, CentOS Stream, Nobara):</p>
-          <div class="code-block">
-            <pre><code>sudo dnf install -y gcc git cargo rust wl-clipboard xclip xdg-utils
-curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-            <button class="code-copy-btn" data-clipboard="sudo dnf install -y gcc git cargo rust wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Fedora command">Copy</button>
-          </div>
-          <p class="tab-note mt-2"><strong>Ubuntu / Debian</strong> (Linux Mint, Pop!_OS):</p>
-          <div class="code-block">
-            <pre><code>sudo apt update && sudo apt install -y build-essential curl git cargo rustc wl-clipboard xclip xdg-utils
-curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
-            <button class="code-copy-btn" data-clipboard="sudo apt update && sudo apt install -y build-essential curl git cargo rustc wl-clipboard xclip xdg-utils && curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash" aria-label="Copy Ubuntu command">Copy</button>
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-cargo">
-          <p class="tab-note">Compile and install via Cargo directly from the repository:</p>
-          <div class="code-block">
-            <pre><code>cargo install --git https://github.com/IamShreshth/Tman.git --locked</code></pre>
-            <button class="code-copy-btn" data-clipboard="cargo install --git https://github.com/IamShreshth/Tman.git --locked" aria-label="Copy command">Copy</button>
-          </div>
-          <div class="tab-note mt-2">Append the hook to your shell configuration:</div>
-          <div class="code-block">
-            <pre><code>echo 'eval "$(tman init zsh)"' >> ~/.zshrc                        # Zsh
-echo 'eval "$(tman init bash)"' >> ~/.bashrc                      # Bash
-echo 'tman init fish | source' >> ~/.config/fish/config.fish      # Fish</code></pre>
-            <button class="code-copy-btn" data-clipboard="echo 'eval &quot;$(tman init zsh)&quot;' >> ~/.zshrc" aria-label="Copy command">Copy</button>
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-source">
-          <p class="tab-note">Clone the repository and run the local builder:</p>
-          <div class="code-block">
-            <pre><code>git clone https://github.com/IamShreshth/Tman.git
-cd Tman
-./files/install.sh</code></pre>
-            <button class="code-copy-btn" data-clipboard="git clone https://github.com/IamShreshth/Tman.git &amp;&amp; cd Tman &amp;&amp; ./files/install.sh" aria-label="Copy command">Copy</button>
-          </div>
-        </div>
-
-        <div class="install-tab-content" id="tab-docker">
-          <p class="tab-note">Test the Linux build without modifying your local system:</p>
-          <div class="code-block">
-            <pre><code># Run tests inside clean Linux container:
-docker run --rm -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo test
-
-# Launch the interactive overlay in Linux:
-docker run --rm -it -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui</code></pre>
-            <button class="code-copy-btn" data-clipboard="docker run --rm -it -v &quot;$PWD&quot;:/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui" aria-label="Copy command">Copy</button>
-          </div>
+          <p class="tab-note mt-2">Then reload your shell: <code>source ~/.bashrc</code> &nbsp;·&nbsp; Use <kbd>Ctrl+Space</kbd> on Linux (many terminals intercept <kbd>Ctrl+Shift+T</kbd>).</p>
         </div>
       </div>
     </div>
   </section>
-
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-inner">
@@ -583,6 +491,7 @@ docker run --rm -it -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo run
       </div>
       <div class="footer-right">
         <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="#install">Install</a>
         <a href="requirements.txt">Requirements</a>
       </div>
     </div>

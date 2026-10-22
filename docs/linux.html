@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linux Guide &amp; Distro Setup — tman</title>
+  <meta name="description" content="Comprehensive Linux guide for tman: installation instructions for Fedora, Arch Linux, Ubuntu, Debian, Alpine, terminal keybinding setup, clipboard configuration, and kernel telemetry.">
+  <meta name="theme-color" content="#080a0f">
+
+  <!-- OpenGraph / Social Meta -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="Linux Guide &amp; Distro Setup — tman">
+  <meta property="og:description" content="Step-by-step Linux installation for Fedora, Arch, Ubuntu, Debian, Alpine, and terminal emulator configurations.">
+  <meta property="og:image" content="preview.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23080a0f'/><path d='M25 40 L45 50 L25 60' stroke='%2300f2ff' stroke-width='8' fill='none' stroke-linecap='round' stroke-linejoin='round'/><line x1='52' y1='60' x2='75' y2='60' stroke='%2300f2ff' stroke-width='8' stroke-linecap='round'/></svg>">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Background Glow & Grid -->
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-terminal">&gt;</span>
+        <span class="brand-name">tman</span>
+        <span class="brand-badge">LINUX DOCS</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="index.html#features">Features</a>
+        <a href="index.html#preview">Interface</a>
+        <a href="index.html#keybindings">Keybindings</a>
+        <a href="index.html#install">Install</a>
+        <a href="linux.html" class="active-nav">Linux Guide</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+          <svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Documentation Content -->
+  <main class="doc-page">
+    <div class="container doc-container">
+      <!-- Breadcrumbs & Title -->
+      <div class="doc-breadcrumb">
+        <a href="index.html">Home</a> &gt; <span>Linux Guide</span>
+      </div>
+
+      <div class="doc-header">
+        <h1 class="doc-title">Linux User Guide &amp; Distro Setup</h1>
+        <p class="doc-lead">
+          <code>tman</code> is engineered from the ground up in native Rust with <strong>zero external runtime dependencies</strong>. It compiles to a standalone, zero-daemon binary that works across standard GNU/Linux and musl distributions on both <code>x86_64</code> and <code>aarch64</code> (ARM64) architectures.
+        </p>
+      </div>
+
+      <!-- Section 1: Distro Installation -->
+      <section class="doc-section" id="distros">
+        <h2 class="doc-heading">1. Distribution-Specific Installation</h2>
+        <p class="doc-text">Select your Linux distribution below for exact package dependencies and activation steps:</p>
+
+        <div class="distro-card">
+          <div class="distro-pills" role="tablist">
+            <button class="distro-pill active" data-distro="fedora" role="tab">Fedora</button>
+            <button class="distro-pill" data-distro="arch" role="tab">Arch Linux</button>
+            <button class="distro-pill" data-distro="ubuntu" role="tab">Ubuntu / Debian</button>
+            <button class="distro-pill" data-distro="alpine" role="tab">Alpine (musl)</button>
+            <button class="distro-pill" data-distro="universal" role="tab">Universal (All Distros)</button>
+          </div>
+
+          <!-- Fedora -->
+          <div class="distro-content active" id="distro-fedora">
+            <div class="distro-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Install toolchain prerequisites</strong> (if compiling via Cargo):
+                <div class="code-block mt-1">
+                  <pre><code>sudo dnf install -y cargo rust</code></pre>
+                  <button class="code-copy-btn" data-clipboard="sudo dnf install -y cargo rust">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Run the single-step installer</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Activate shell integration</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>source ~/.bashrc   # Or ~/.zshrc if using Zsh</code></pre>
+                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arch Linux -->
+          <div class="distro-content" id="distro-arch">
+            <div class="distro-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Install Rust toolchain</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>sudo pacman -S --noconfirm rust</code></pre>
+                  <button class="code-copy-btn" data-clipboard="sudo pacman -S --noconfirm rust">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Run the installer</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Activate in your shell</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>source ~/.bashrc   # Or source ~/.zshrc</code></pre>
+                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
+                </div>
+                <p class="tab-note mt-1"><em>Note for AUR users:</em> If an AUR package becomes available, you can also install via <code>yay -S tman</code> or <code>paru -S tman</code>.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ubuntu / Debian -->
+          <div class="distro-content" id="distro-ubuntu">
+            <div class="distro-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Install toolchain packages</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>sudo apt update && sudo apt install -y cargo rustc</code></pre>
+                  <button class="code-copy-btn" data-clipboard="sudo apt update &amp;&amp; sudo apt install -y cargo rustc">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Run the installer</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">3</span>
+              <div>
+                <strong>Activate shell integration</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>source ~/.bashrc   # Or source ~/.zshrc</code></pre>
+                  <button class="code-copy-btn" data-clipboard="source ~/.bashrc">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alpine Linux -->
+          <div class="distro-content" id="distro-alpine">
+            <div class="distro-step">
+              <span class="step-num">1</span>
+              <div>
+                <strong>Install build dependencies (musl libc)</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>sudo apk add cargo rust bash curl</code></pre>
+                  <button class="code-copy-btn" data-clipboard="sudo apk add cargo rust bash curl">Copy</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="distro-step">
+              <span class="step-num">2</span>
+              <div>
+                <strong>Run the installer</strong> (auto-detects musl libc target):
+                <div class="code-block mt-1">
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Universal -->
+          <div class="distro-content" id="distro-universal">
+            <div class="distro-step">
+              <span class="step-num">★</span>
+              <div>
+                <strong>Universal one-liner for any Linux distribution</strong>:
+                <div class="code-block mt-1">
+                  <pre><code>curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash</code></pre>
+                  <button class="code-copy-btn" data-clipboard="curl -fsSL https://raw.githubusercontent.com/IamShreshth/Tman/main/files/install.sh | bash">Copy</button>
+                </div>
+                <p class="tab-note mt-1">The installer detects your architecture (<code>x86_64</code> or <code>aarch64</code>), detects your libc (<code>glibc</code> vs <code>musl</code>), and binds to either <code>~/.bashrc</code> or <code>~/.zshrc</code>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Linux Keybinding Notes -->
+      <section class="doc-section" id="keybindings">
+        <h2 class="doc-heading">2. Linux Keyboard Shortcuts &amp; Terminal Emulators</h2>
+        
+        <div class="alert-box alert-info">
+          <div class="alert-title">
+            <span class="alert-icon">💡</span>
+            <span>Why <kbd>Ctrl+Space</kbd> is the recommended Linux shortcut</span>
+          </div>
+          <p class="alert-desc">
+            Many Linux terminal emulators (<strong>GNOME Terminal</strong>, <strong>KDE Konsole</strong>, <strong>Tilix</strong>, and <strong>XFCE Terminal</strong>) have hardcoded application-level shortcuts where <kbd>Ctrl+Shift+T</kbd> opens a "New Tab" before key events can reach your shell prompt.
+          </p>
+          <p class="alert-desc mt-1">
+            To solve this without forcing you to reconfigure your terminal emulator, <code>tman init</code> configures <strong>both <kbd>Ctrl+Space</kbd> (<kbd>\C-@</kbd>) and <kbd>Ctrl+Shift+T</kbd></strong> by default on Linux.
+          </p>
+        </div>
+
+        <div class="table-card mt-2">
+          <table class="key-table">
+            <thead>
+              <tr>
+                <th>Terminal Emulator</th>
+                <th>Recommended Hotkey</th>
+                <th>CSI u Protocol Support</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Alacritty</strong></td>
+                <td><kbd>Ctrl+Space</kbd> or <kbd>Ctrl+Shift+T</kbd></td>
+                <td>Supported via config</td>
+              </tr>
+              <tr>
+                <td><strong>Kitty</strong></td>
+                <td><kbd>Ctrl+Space</kbd> or <kbd>Ctrl+Shift+T</kbd></td>
+                <td>Native Kitty Keyboard Protocol</td>
+              </tr>
+              <tr>
+                <td><strong>WezTerm</strong></td>
+                <td><kbd>Ctrl+Space</kbd> or <kbd>Ctrl+Shift+T</kbd></td>
+                <td>Native CSI u Protocol</td>
+              </tr>
+              <tr>
+                <td><strong>Foot (Wayland)</strong></td>
+                <td><kbd>Ctrl+Space</kbd> or <kbd>Ctrl+Shift+T</kbd></td>
+                <td>Native CSI u Protocol</td>
+              </tr>
+              <tr>
+                <td><strong>GNOME Terminal / Ptyxis</strong></td>
+                <td><kbd>Ctrl+Space</kbd></td>
+                <td><kbd>Ctrl+Shift+T</kbd> intercepted for New Tab</td>
+              </tr>
+              <tr>
+                <td><strong>Konsole (KDE)</strong></td>
+                <td><kbd>Ctrl+Space</kbd></td>
+                <td><kbd>Ctrl+Shift+T</kbd> intercepted for New Tab</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 3: System Telemetry Mappings -->
+      <section class="doc-section" id="telemetry">
+        <h2 class="doc-heading">3. Kernel Telemetry &amp; System Vitals</h2>
+        <p class="doc-text">
+          Unlike daemon-heavy monitoring tools, <code>tman</code> queries Linux virtual filesystems in user space with zero performance overhead:
+        </p>
+
+        <div class="features-grid mt-2">
+          <div class="feature-card">
+            <h3 class="feature-title">Battery Telemetry</h3>
+            <p class="feature-desc">Queries <code>/sys/class/power_supply/BAT*</code> for <code>capacity</code> and <code>status</code> (with fallback to <code>charge_now</code> / <code>charge_full</code> or <code>energy_now</code> / <code>energy_full</code>). Gracefully hidden on desktop rigs and servers.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">RAM / Memory</h3>
+            <p class="feature-desc">Parses <code>MemTotal</code> from <code>/proc/meminfo</code> with a standard <code>libc::sysinfo</code> fallback to accurately display total memory allocation.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">CPU Load &amp; Uptime</h3>
+            <p class="feature-desc">Uses <code>libc::getloadavg</code> with <code>/proc/loadavg</code> fallback for 1, 5, and 15-minute load averages, and <code>/proc/uptime</code> for machine uptime duration.</p>
+          </div>
+
+          <div class="feature-card">
+            <h3 class="feature-title">Filesystem Disk Space</h3>
+            <p class="feature-desc">Uses POSIX <code>statvfs(2)</code> with fragment size (<code>f_frsize</code>) and block size (<code>f_bsize</code>) fallbacks to reliably report free bytes and percentage used.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Clipboard & Desktop Integration -->
+      <section class="doc-section" id="clipboard">
+        <h2 class="doc-heading">4. Wayland &amp; X11 Clipboard Hooks</h2>
+        <p class="doc-text">
+          In <code>tman</code>'s file actions menu (<kbd>Tab</kbd>), you can copy absolute file paths directly to your system clipboard. Install your desktop environment's clipboard utility:
+        </p>
+
+        <div class="code-block mt-1">
+          <pre><code># For Wayland (GNOME, KDE Wayland, Sway, Hyprland):
+sudo apt install wl-clipboard      # Ubuntu / Debian
+sudo dnf install wl-clipboard      # Fedora
+sudo pacman -S wl-clipboard        # Arch Linux
+
+# For X11:
+sudo apt install xclip             # Ubuntu / Debian
+sudo dnf install xclip             # Fedora
+sudo pacman -S xclip               # Arch Linux</code></pre>
+          <button class="code-copy-btn" data-clipboard="sudo apt install wl-clipboard # OR xclip">Copy</button>
+        </div>
+
+        <div class="mt-2">
+          <h3 class="feature-title">Desktop File Manager &amp; Opener:</h3>
+          <p class="doc-text">
+            Pressing <kbd>Tab</kbd> on any file presents <strong>"Open with app"</strong>, and on directories presents <strong>"Open file manager"</strong>. On Linux, this automatically delegates to <code>xdg-open</code>.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: Docker Container Sandbox -->
+      <section class="doc-section" id="docker">
+        <h2 class="doc-heading">5. Testing in a Docker Sandbox</h2>
+        <p class="doc-text">You can test <code>tman</code> inside an isolated Linux container on any machine with Docker installed:</p>
+
+        <div class="code-block mt-1">
+          <pre><code># Run tests inside a Linux container:
+docker run --rm -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo test
+
+# Launch the interactive overlay inside Linux:
+docker run --rm -it -v "$PWD":/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui</code></pre>
+          <button class="code-copy-btn" data-clipboard="docker run --rm -it -v &quot;$PWD&quot;:/usr/src/tman -w /usr/src/tman rust:slim cargo run -- ui">Copy</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <span class="brand-terminal">&gt;</span>
+        <span class="brand-name">tman</span>
+        <span class="footer-copy">— An open-source interactive terminal layer. MIT Licensed.</span>
+      </div>
+      <div class="footer-right">
+        <a href="index.html">Home</a>
+        <a href="https://github.com/IamShreshth/Tman" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="requirements.txt">Requirements</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

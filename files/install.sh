@@ -130,8 +130,8 @@ if [[ "$INSTALLED" = false ]]; then
         info "No pre-built binary release found for ${TARGET}. Falling back to Cargo..."
         if command -v cargo >/dev/null 2>&1; then
             info "Building and installing tman with Cargo..."
-            cargo install --git "$REPO_GIT" --bin tman --locked --root "${BIN_DIR}/.."
-            if [[ -f "${BIN_DIR}/../bin/tman" ]] && [[ "${BIN_DIR}/../bin/tman" != "$BIN_DIR/tman" ]]; then
+            cargo install --git "$REPO_GIT" --bin tman --locked --force --root "${BIN_DIR}/.."
+            if [[ -f "${BIN_DIR}/../bin/tman" ]] && ! [[ "${BIN_DIR}/../bin/tman" -ef "$BIN_DIR/tman" ]]; then
                 cp "${BIN_DIR}/../bin/tman" "$BIN_DIR/tman"
             fi
             INSTALLED=true
